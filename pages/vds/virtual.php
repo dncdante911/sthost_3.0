@@ -8,6 +8,21 @@ define('SECURE_ACCESS', true);
 // ВАЖЛИВО: Налаштуйте Product IDs з вашого WHMCS
 // Знайти їх можна: WHMCS Admin -> Setup -> Products/Services -> Products/Services
 // Формат: 'internal_id' => WHMCS_PRODUCT_ID
+//
+// 📖 ПОВНА ДОКУМЕНТАЦІЯ:
+// - WHMCS_VPS_INTEGRATION.md - настройка Product IDs
+// - WHMCS_OS_SELECTION.md - настройка выбора операционных систем
+//
+// 🎯 ШО ЗРОБЛЕНО:
+// ✅ Кнопки "Замовити зараз" ведуть в WHMCS корзину
+// ✅ Вибір місячної/річної оплати
+// ✅ Кликабельні карточки ОС з індикатором вибору
+// ✅ Автоматична передача вибраної ОС в WHMCS (через configoption[1])
+//
+// 🔧 ШО НАЛАШТУВАТИ:
+// 1. Пропишіть ваші Product IDs нижче (дивіться WHMCS_VPS_INTEGRATION.md)
+// 2. Створіть Configurable Option для ОС в WHMCS (дивіться WHMCS_OS_SELECTION.md)
+// 3. Якщо ID Configurable Option НЕ 1, змініть в строці 868
 
 $whmcs_config = [
     'billing_url' => 'https://bill.sthost.pro', // URL вашого WHMCS біллінгу
@@ -145,14 +160,14 @@ $vps_plans = [
 ];
 
 $operating_systems = [
-    ['name' => 'Ubuntu 22.04 LTS', 'icon' => 'ubuntu.png', 'category' => 'Linux', 'popular' => true],
-    ['name' => 'CentOS Stream 8', 'icon' => 'centos.png', 'category' => 'Linux', 'popular' => true],
-    ['name' => 'Debian 11', 'icon' => 'debian.png', 'category' => 'Linux', 'popular' => true],
-    ['name' => 'AlmaLinux 8', 'icon' => 'almalinux.png', 'category' => 'Linux', 'popular' => false],
-    ['name' => 'Rocky Linux 8', 'icon' => 'rocky.png', 'category' => 'Linux', 'popular' => false],
-    ['name' => 'FreeBSD 13', 'icon' => 'freebsd.png', 'category' => 'BSD', 'popular' => false],
-    ['name' => 'Windows Server 2022', 'icon' => 'windows.png', 'category' => 'Windows', 'popular' => true],
-    ['name' => 'Windows Server 2019', 'icon' => 'windows.png', 'category' => 'Windows', 'popular' => false]
+    ['id' => 'ubuntu-22', 'name' => 'Ubuntu 22.04 LTS', 'icon' => 'ubuntu.png', 'category' => 'Linux', 'popular' => true],
+    ['id' => 'centos-8', 'name' => 'CentOS Stream 8', 'icon' => 'centos.png', 'category' => 'Linux', 'popular' => true],
+    ['id' => 'debian-11', 'name' => 'Debian 11', 'icon' => 'debian.png', 'category' => 'Linux', 'popular' => true],
+    ['id' => 'almalinux-8', 'name' => 'AlmaLinux 8', 'icon' => 'almalinux.png', 'category' => 'Linux', 'popular' => false],
+    ['id' => 'rocky-8', 'name' => 'Rocky Linux 8', 'icon' => 'rocky.png', 'category' => 'Linux', 'popular' => false],
+    ['id' => 'freebsd-13', 'name' => 'FreeBSD 13', 'icon' => 'freebsd.png', 'category' => 'BSD', 'popular' => false],
+    ['id' => 'windows-2022', 'name' => 'Windows Server 2022', 'icon' => 'windows.png', 'category' => 'Windows', 'popular' => true],
+    ['id' => 'windows-2019', 'name' => 'Windows Server 2019', 'icon' => 'windows.png', 'category' => 'Windows', 'popular' => false]
 ];
 
 // Підключення файлів
@@ -440,7 +455,10 @@ try {
                         <div class="os-grid">
                             <?php foreach ($operating_systems as $os): ?>
                                 <?php if ($os['category'] === 'Linux'): ?>
-                                <div class="os-item <?php echo $os['popular'] ? 'popular' : ''; ?>">
+                                <div class="os-item <?php echo $os['popular'] ? 'popular' : ''; ?>"
+                                     data-os-id="<?php echo $os['id']; ?>"
+                                     data-os-name="<?php echo escapeOutput($os['name']); ?>"
+                                     onclick="selectOS('<?php echo $os['id']; ?>', '<?php echo escapeOutput($os['name']); ?>')">
                                     <div class="os-icon">
                                         <img src="/assets/images/os/<?php echo $os['icon']; ?>" alt="<?php echo escapeOutput($os['name']); ?>">
                                     </div>
@@ -465,7 +483,10 @@ try {
                         <div class="os-grid">
                             <?php foreach ($operating_systems as $os): ?>
                                 <?php if ($os['category'] === 'Windows'): ?>
-                                <div class="os-item <?php echo $os['popular'] ? 'popular' : ''; ?>">
+                                <div class="os-item <?php echo $os['popular'] ? 'popular' : ''; ?>"
+                                     data-os-id="<?php echo $os['id']; ?>"
+                                     data-os-name="<?php echo escapeOutput($os['name']); ?>"
+                                     onclick="selectOS('<?php echo $os['id']; ?>', '<?php echo escapeOutput($os['name']); ?>')">
                                     <div class="os-icon">
                                         <img src="/assets/images/os/<?php echo $os['icon']; ?>" alt="<?php echo escapeOutput($os['name']); ?>">
                                     </div>
@@ -721,10 +742,153 @@ try {
 
 <script src="assets/js/vds-virtual.js"></script>
 
-<!-- VPS Billing Cycle Switcher -->
+<!-- Enhanced OS Selection & VPS Billing Cycle Switcher -->
+<style>
+/* OS Selection Styles */
+.os-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    padding: 15px;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.os-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+.os-item.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    position: relative;
+}
+
+.os-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#selectedOSIndicator {
+    position: sticky;
+    top: 80px;
+    z-index: 100;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
 <script>
+// Глобальные переменные для выбранной ОС
+let selectedOS = null;
+let currentBillingCycle = 'monthly';
+
+// Функция выбора ОС
+function selectOS(osId, osName) {
+    selectedOS = { id: osId, name: osName };
+
+    // Убираем выделение со всех карточек
+    document.querySelectorAll('.os-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    // Выделяем выбранную
+    document.querySelectorAll(`.os-item[data-os-id="${osId}"]`).forEach(item => {
+        item.classList.add('selected');
+    });
+
+    // Показываем уведомление
+    showOSIndicator(osName);
+
+    // Обновляем ссылки на кнопках заказа
+    updateOrderButtonsWithOS();
+
+    // Скроллим к тарифам
+    setTimeout(() => {
+        document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 500);
+}
+
+// Показать индикатор выбранной ОС
+function showOSIndicator(osName) {
+    let indicator = document.getElementById('selectedOSIndicator');
+
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'selectedOSIndicator';
+        indicator.className = 'alert alert-success';
+        indicator.style.cssText = 'margin-bottom: 0;';
+        document.querySelector('#plans .container').prepend(indicator);
+    }
+
+    indicator.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Обрана ОС:</strong> ${osName}
+            </div>
+            <button class="btn btn-sm btn-outline-success" onclick="clearOSSelection()">
+                <i class="bi bi-x-circle"></i> Змінити
+            </button>
+        </div>
+    `;
+}
+
+// Очистить выбор ОС
+function clearOSSelection() {
+    selectedOS = null;
+    document.querySelectorAll('.os-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    const indicator = document.getElementById('selectedOSIndicator');
+    if (indicator) indicator.remove();
+    updateOrderButtonsWithOS();
+}
+
+// Обновить ссылки на кнопках с учетом выбранной ОС
+function updateOrderButtonsWithOS() {
+    const orderButtons = document.querySelectorAll('.btn-order-vps');
+
+    orderButtons.forEach(button => {
+        let baseUrl = button.getAttribute(`data-url-${currentBillingCycle}`);
+
+        if (selectedOS && baseUrl) {
+            // Добавляем configoption для ОС
+            // ВАЖНО: Настройте в WHMCS Configurable Option ID для выбора ОС
+            // Формат: &configoption[X]=value где X - ID вашего config option в WHMCS
+            baseUrl += `&configoption[1]=${encodeURIComponent(selectedOS.id)}`;
+        }
+
+        button.href = baseUrl;
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Элементы переключателя
+    // Элементы переключателя биллинга
     const monthlyToggle = document.getElementById('vps-monthly');
     const yearlyToggle = document.getElementById('vps-yearly');
     const orderButtons = document.querySelectorAll('.btn-order-vps');
@@ -733,12 +897,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Функция переключения billing cycle
     function updateBillingCycle(cycle) {
+        currentBillingCycle = cycle;
+
         orderButtons.forEach(button => {
-            if (cycle === 'monthly') {
-                button.href = button.getAttribute('data-url-monthly');
-            } else {
-                button.href = button.getAttribute('data-url-yearly');
-            }
+            button.href = button.getAttribute(`data-url-${cycle}`);
         });
 
         // Переключение отображения цен
@@ -749,6 +911,9 @@ document.addEventListener('DOMContentLoaded', function() {
             monthlyPrices.forEach(price => price.classList.add('d-none'));
             yearlyPrices.forEach(price => price.classList.remove('d-none'));
         }
+
+        // Обновляем ссылки с учетом выбранной ОС
+        updateOrderButtonsWithOS();
     }
 
     // Обработчики событий
