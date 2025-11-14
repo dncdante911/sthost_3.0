@@ -2,6 +2,49 @@
 // Захист від прямого доступу
 define('SECURE_ACCESS', true);
 
+// ==========================================
+// WHMCS INTEGRATION CONFIGURATION
+// ==========================================
+// ВАЖЛИВО: Налаштуйте Product IDs з вашого WHMCS
+// Знайти їх можна: WHMCS Admin -> Setup -> Products/Services -> Products/Services
+// Формат: 'internal_id' => WHMCS_PRODUCT_ID
+
+$whmcs_config = [
+    'billing_url' => 'https://bill.sthost.pro', // URL вашого WHMCS біллінгу
+
+    // Маппінг VPS планів на Product IDs з WHMCS
+    'product_ids' => [
+        1 => 1,  // VPS Start -> WHMCS Product ID (ЗМІНІТЬ НА ВАШІ!)
+        2 => 2,  // VPS Basic -> WHMCS Product ID
+        3 => 3,  // VPS Pro -> WHMCS Product ID
+        4 => 4   // VPS Business -> WHMCS Product ID
+    ],
+
+    // Billing cycles для кожного плану (monthly, quarterly, semiannually, annually)
+    'default_billing_cycle' => 'monthly',
+
+    // Увімкнути direct checkout (перехід одразу до оформлення)
+    'direct_checkout' => false // true = одразу checkout, false = спочатку cart
+];
+
+// ІНСТРУКЦІЯ ПО НАЛАШТУВАННЮ:
+//
+// 1. Створіть продукти VPS в WHMCS:
+//    - Зайдіть в WHMCS Admin Panel
+//    - Setup -> Products/Services -> Create a New Group (назвіть "VPS Servers")
+//    - Setup -> Products/Services -> Create a New Product
+//    - Заповніть назву, ціну, характеристики
+//    - Збережіть і запам'ятайте Product ID (показується в URL або в списку)
+//
+// 2. Запишіть Product IDs в масив $whmcs_config['product_ids'] вище
+//    Приклад: 1 => 15 означає що VPS Start (ID 1) = WHMCS Product ID 15
+//
+// 3. Встановіть правильний URL біллінгу в 'billing_url'
+//
+// 4. Збережіть файл
+//
+// ==========================================
+
 // Конфігурація сторінки
 $page = 'virtual';
 $page_title = 'Виділені сервери - StormHosting UA';
@@ -333,27 +376,30 @@ try {
                     </div>
                     
                     <div class="plan-footer">
-                        <!-- 
-                        ====== ЗАГЛУШКА ДЛЯ FOSSBILLING ======
-                        Тут буде інтеграція з FossBilling
-                        VPS Plan ID: <?php echo $plan['id']; ?>
-                        Plan Name: <?php echo $plan['name']; ?>
-                        Monthly Price: <?php echo $plan['price_monthly']; ?>
-                        Yearly Price: <?php echo $plan['price_yearly']; ?>
-                        API endpoint: /api/vds/order.php
-                        FossBilling Product ID: vps_plan_<?php echo $plan['id']; ?>
-                        -->
-                        <button class="btn btn-primary w-100 btn-order-vps" 
-                                data-plan-id="<?php echo $plan['id']; ?>"
-                                data-plan-name="<?php echo escapeOutput($plan['name']); ?>"
-                                data-monthly-price="<?php echo $plan['price_monthly']; ?>"
-                                data-yearly-price="<?php echo $plan['price_yearly']; ?>"
-                                data-cpu="<?php echo $plan['cpu_cores']; ?>"
-                                data-ram="<?php echo $plan['ram']; ?>"
-                                data-storage="<?php echo $plan['storage']; ?>">
+                        <?php
+                        // Отримуємо WHMCS Product ID для цього плану
+                        $whmcs_pid = $whmcs_config['product_ids'][$plan['id']] ?? $plan['id'];
+                        $billing_url = $whmcs_config['billing_url'];
+
+                        // Формуємо URLs для обох billing cycles
+                        if ($whmcs_config['direct_checkout']) {
+                            $order_url_monthly = "{$billing_url}/cart.php?a=add&pid={$whmcs_pid}&billingcycle=monthly&carttpl=standard";
+                            $order_url_yearly = "{$billing_url}/cart.php?a=add&pid={$whmcs_pid}&billingcycle=annually&carttpl=standard";
+                        } else {
+                            $order_url_monthly = "{$billing_url}/cart.php?a=add&pid={$whmcs_pid}&billingcycle=monthly";
+                            $order_url_yearly = "{$billing_url}/cart.php?a=add&pid={$whmcs_pid}&billingcycle=annually";
+                        }
+                        ?>
+                        <a href="<?php echo htmlspecialchars($order_url_monthly); ?>"
+                           class="btn btn-primary w-100 btn-order-vps"
+                           data-url-monthly="<?php echo htmlspecialchars($order_url_monthly); ?>"
+                           data-url-yearly="<?php echo htmlspecialchars($order_url_yearly); ?>"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           title="Замовити <?php echo escapeOutput($plan['name']); ?>">
                             <i class="bi bi-rocket-takeoff"></i>
                             Замовити зараз
-                        </button>
+                        </a>
                         
                         <div class="guarantee-text">
                             <i class="bi bi-shield-check"></i>
@@ -675,7 +721,59 @@ try {
 
 <script src="assets/js/vds-virtual.js"></script>
 
-<?php 
+<!-- VPS Billing Cycle Switcher -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Элементы переключателя
+    const monthlyToggle = document.getElementById('vps-monthly');
+    const yearlyToggle = document.getElementById('vps-yearly');
+    const orderButtons = document.querySelectorAll('.btn-order-vps');
+    const monthlyPrices = document.querySelectorAll('.monthly-price');
+    const yearlyPrices = document.querySelectorAll('.yearly-price');
+
+    // Функция переключения billing cycle
+    function updateBillingCycle(cycle) {
+        orderButtons.forEach(button => {
+            if (cycle === 'monthly') {
+                button.href = button.getAttribute('data-url-monthly');
+            } else {
+                button.href = button.getAttribute('data-url-yearly');
+            }
+        });
+
+        // Переключение отображения цен
+        if (cycle === 'monthly') {
+            monthlyPrices.forEach(price => price.classList.remove('d-none'));
+            yearlyPrices.forEach(price => price.classList.add('d-none'));
+        } else {
+            monthlyPrices.forEach(price => price.classList.add('d-none'));
+            yearlyPrices.forEach(price => price.classList.remove('d-none'));
+        }
+    }
+
+    // Обработчики событий
+    if (monthlyToggle) {
+        monthlyToggle.addEventListener('change', function() {
+            if (this.checked) {
+                updateBillingCycle('monthly');
+            }
+        });
+    }
+
+    if (yearlyToggle) {
+        yearlyToggle.addEventListener('change', function() {
+            if (this.checked) {
+                updateBillingCycle('yearly');
+            }
+        });
+    }
+
+    // Инициализация с monthly по умолчанию
+    updateBillingCycle('monthly');
+});
+</script>
+
+<?php
 // Підключення footer якщо файл існує
 if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php')) {
     include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php';
