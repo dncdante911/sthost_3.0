@@ -13,8 +13,6 @@ SET FOREIGN_KEY_CHECKS=0;
 -- 1. ТАБЛИЦА vps_instances - ДОБАВЛЕНИЕ PROXMOX ПОЛЕЙ
 -- ==================================================
 
-SELECT '📋 Шаг 1: Настройка таблицы vps_instances для Proxmox...' as status;
-
 -- Добавляем поля Proxmox
 ALTER TABLE `vps_instances`
 ADD COLUMN IF NOT EXISTS `proxmox_vmid` INT NULL COMMENT 'Proxmox VM ID' AFTER `hostname`,
@@ -28,13 +26,9 @@ ALTER TABLE `vps_instances` ADD INDEX IF NOT EXISTS `idx_proxmox_node` (`proxmox
 ALTER TABLE `vps_instances` DROP INDEX IF EXISTS `unique_hostname`;
 ALTER TABLE `vps_instances` ADD INDEX IF NOT EXISTS `idx_hostname` (`hostname`);
 
-SELECT '✅ Таблица vps_instances настроена для Proxmox' as status;
-
 -- ==================================================
 -- 2. ТАБЛИЦА vps_os_templates - ДОБАВЛЕНИЕ PROXMOX ПОЛЕЙ
 -- ==================================================
-
-SELECT '📋 Шаг 2: Настройка таблицы vps_os_templates для Proxmox...' as status;
 
 -- Добавляем поля для Proxmox темплейтов
 ALTER TABLE `vps_os_templates`
@@ -46,13 +40,9 @@ ADD COLUMN IF NOT EXISTS `proxmox_node` VARCHAR(50) DEFAULT 'pve' COMMENT 'Proxm
 ALTER TABLE `vps_os_templates` ADD INDEX IF NOT EXISTS `idx_proxmox_template_id` (`proxmox_template_id`);
 ALTER TABLE `vps_os_templates` ADD INDEX IF NOT EXISTS `idx_proxmox_node` (`proxmox_node`);
 
-SELECT '✅ Таблица vps_os_templates настроена для Proxmox' as status;
-
 -- ==================================================
 -- 3. ТАБЛИЦА vps_snapshots - ДОБАВЛЕНИЕ PROXMOX ПОЛЕЙ
 -- ==================================================
-
-SELECT '📋 Шаг 3: Настройка таблицы vps_snapshots для Proxmox...' as status;
 
 -- Добавляем поле для Proxmox snapshot
 ALTER TABLE `vps_snapshots`
@@ -61,13 +51,9 @@ ADD COLUMN IF NOT EXISTS `proxmox_snapshot_name` VARCHAR(150) NULL COMMENT 'Prox
 -- Добавляем индекс
 ALTER TABLE `vps_snapshots` ADD INDEX IF NOT EXISTS `idx_proxmox_snapshot` (`proxmox_snapshot_name`);
 
-SELECT '✅ Таблица vps_snapshots настроена для Proxmox' as status;
-
 -- ==================================================
--- 4. СОЗДАНИЕ ТАБЛИЦЫ МИГРАЦИИ (опционально)
+-- 4. СОЗДАНИЕ ТАБЛИЦЫ МИГРАЦИИ
 -- ==================================================
-
-SELECT '📋 Шаг 4: Создание таблицы для отслеживания миграции...' as status;
 
 CREATE TABLE IF NOT EXISTS `proxmox_migration_log` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -86,13 +72,9 @@ CREATE TABLE IF NOT EXISTS `proxmox_migration_log` (
   KEY `idx_migration_date` (`migration_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Лог миграции на Proxmox VE 9';
 
-SELECT '✅ Таблица proxmox_migration_log создана' as status;
-
 -- ==================================================
 -- 5. ОБНОВЛЕНИЕ СУЩЕСТВУЮЩИХ ДАННЫХ
 -- ==================================================
-
-SELECT '📋 Шаг 5: Обновление существующих данных...' as status;
 
 -- Устанавливаем дефолтную ноду для всех существующих VPS
 UPDATE `vps_instances` SET `proxmox_node` = 'pve' WHERE `proxmox_node` IS NULL;
@@ -103,33 +85,9 @@ UPDATE `vps_os_templates` SET `proxmox_node` = 'pve' WHERE `proxmox_node` IS NUL
 -- Устанавливаем дефолтный storage для всех темплейтов
 UPDATE `vps_os_templates` SET `proxmox_storage` = 'local-lvm' WHERE `proxmox_storage` IS NULL;
 
-SELECT '✅ Существующие данные обновлены' as status;
-
 -- ==================================================
--- 6. НАСТРОЙКА PROXMOX TEMPLATE ID ДЛЯ СУЩЕСТВУЮЩИХ ОС
+-- 6. ОПТИМИЗАЦИЯ ТАБЛИЦ
 -- ==================================================
-
-SELECT '📋 Шаг 6: Настройка Proxmox Template ID для ОС...' as status;
-
--- ВАЖНО: Замените VMID на реальные ID ваших темплейтов в Proxmox!
--- Узнать VMID можно командой: qm list
--- Или в Proxmox Web UI: Datacenter > [Node] > Virtual Machines
-
--- Пример настройки (ЗАМЕНИТЕ НА СВОИ VMID!):
--- UPDATE `vps_os_templates` SET `proxmox_template_id` = 9000 WHERE `name` = 'ubuntu-22.04';
--- UPDATE `vps_os_templates` SET `proxmox_template_id` = 9001 WHERE `name` = 'ubuntu-24.04';
--- UPDATE `vps_os_templates` SET `proxmox_template_id` = 9002 WHERE `name` = 'centos-8';
--- UPDATE `vps_os_templates` SET `proxmox_template_id` = 9003 WHERE `name` = 'windows-10';
--- UPDATE `vps_os_templates` SET `proxmox_template_id` = 9004 WHERE `name` = 'windows-11';
-
-SELECT '⚠️  ВНИМАНИЕ: Обновите proxmox_template_id вручную!' as warning;
-SELECT '   Раскомментируйте и выполните UPDATE запросы выше' as hint;
-
--- ==================================================
--- 7. ОПТИМИЗАЦИЯ И ФИНАЛИЗАЦИЯ
--- ==================================================
-
-SELECT '📋 Шаг 7: Оптимизация таблиц...' as status;
 
 OPTIMIZE TABLE `vps_instances`;
 OPTIMIZE TABLE `vps_os_templates`;
@@ -137,46 +95,35 @@ OPTIMIZE TABLE `vps_plans`;
 OPTIMIZE TABLE `vps_snapshots`;
 OPTIMIZE TABLE `proxmox_migration_log`;
 
-SELECT '✅ Таблицы оптимизированы' as status;
+SET FOREIGN_KEY_CHECKS=1;
 
 -- ==================================================
--- 8. ПРОВЕРКА РЕЗУЛЬТАТОВ
+-- ПРОВЕРКА РЕЗУЛЬТАТОВ
 -- ==================================================
-
-SELECT '
-╔════════════════════════════════════════════════════╗
-║  📊 ПРОВЕРКА СТРУКТУРЫ ТАБЛИЦ                     ║
-╚════════════════════════════════════════════════════╝
-' as message;
 
 -- Проверяем vps_instances
-SELECT 'vps_instances: Структура' as info;
+SELECT 'Проверка vps_instances:' as info;
 DESCRIBE vps_instances;
 
--- Статистика
+-- Статистика VPS
 SELECT
-    '📊 СТАТИСТИКА vps_instances:' as info,
     COUNT(*) as total_vps,
     SUM(CASE WHEN proxmox_vmid IS NOT NULL THEN 1 ELSE 0 END) as with_proxmox_vmid,
     SUM(CASE WHEN proxmox_vmid IS NULL THEN 1 ELSE 0 END) as needs_vmid
 FROM vps_instances;
 
 -- Проверяем vps_os_templates
-SELECT '' as separator;
-SELECT 'vps_os_templates: Структура' as info;
+SELECT 'Проверка vps_os_templates:' as info;
 DESCRIBE vps_os_templates;
 
 -- Статистика темплейтов
 SELECT
-    '📊 СТАТИСТИКА vps_os_templates:' as info,
     COUNT(*) as total_templates,
     SUM(CASE WHEN proxmox_template_id IS NOT NULL THEN 1 ELSE 0 END) as configured_for_proxmox,
     SUM(CASE WHEN proxmox_template_id IS NULL THEN 1 ELSE 0 END) as needs_configuration
 FROM vps_os_templates;
 
 -- Список всех темплейтов с их статусом
-SELECT '' as separator;
-SELECT '📦 СПИСОК ТЕМПЛЕЙТОВ:' as info;
 SELECT
     id,
     name,
@@ -188,30 +135,16 @@ SELECT
     proxmox_storage,
     is_active,
     CASE
-        WHEN proxmox_template_id IS NOT NULL THEN '✅ Готов'
-        ELSE '❌ Нужна настройка'
+        WHEN proxmox_template_id IS NOT NULL THEN 'Ready'
+        ELSE 'Needs Config'
     END as status
 FROM vps_os_templates
 ORDER BY sort_order, name;
 
-SET FOREIGN_KEY_CHECKS=1;
-
--- ==================================================
--- ГОТОВО!
--- ==================================================
-
-SELECT '
-╔════════════════════════════════════════════════════╗
-║  ✅ НАСТРОЙКА PROXMOX ЗАВЕРШЕНА!                  ║
-║                                                    ║
-║  📝 СЛЕДУЮЩИЕ ШАГИ:                               ║
-║  1. Создайте темплейты в Proxmox                 ║
-║  2. Узнайте их VMID (qm list)                    ║
-║  3. Обновите proxmox_template_id в таблице       ║
-║     vps_os_templates                              ║
-║  4. Настройте config.php с учетными данными      ║
-║  5. Протестируйте создание VPS                   ║
-║                                                    ║
-║  📖 Подробнее: PROXMOX_SETUP_GUIDE.md            ║
-╚════════════════════════════════════════════════════╝
-' as message;
+-- Готово!
+-- Следующие шаги:
+-- 1. Создайте темплейты в Proxmox
+-- 2. Узнайте их VMID (qm list)
+-- 3. Обновите proxmox_template_id в таблице vps_os_templates
+-- 4. Настройте config.php с учетными данными
+-- 5. Протестируйте создание VPS
