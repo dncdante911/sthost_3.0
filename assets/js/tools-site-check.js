@@ -743,6 +743,36 @@ function copyCode() {
     }
 }
 
+// Копирование кода из блоков документации
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('copy-btn') || e.target.closest('.copy-btn')) {
+        const btn = e.target.classList.contains('copy-btn') ? e.target : e.target.closest('.copy-btn');
+        const codeId = btn.dataset.code;
+        const codeElement = document.getElementById('code-' + codeId);
+
+        if (codeElement) {
+            const text = codeElement.textContent;
+
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = btn.querySelector('i');
+                const originalClass = icon.className;
+
+                // Показываем успех
+                icon.className = 'bi bi-check';
+                btn.classList.add('copied');
+
+                // Возвращаем через 2 секунды
+                setTimeout(() => {
+                    icon.className = originalClass;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+            });
+        }
+    }
+});
+
 // Экспорт для использования в других модулях
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = SiteChecker;
