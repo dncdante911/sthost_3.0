@@ -191,7 +191,7 @@ class IPChecker {
         }
         
         try {
-            const response = await fetch('/api/tools/ip-check.php', {
+            const response = await fetch('/v1/ip-check', {
                 method: 'POST',
                 body: formData,
                 headers: {

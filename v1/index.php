@@ -16,10 +16,19 @@ $response = [
             'method' => 'POST',
             'description' => 'Check website availability and performance',
             'authentication' => 'Bearer token required',
-            'rate_limit' => '1000 requests per hour'
+            'rate_limit' => '1000 requests per hour',
+            'documentation' => 'https://sthost.pro/pages/tools/site-check.php#api'
+        ],
+        [
+            'path' => '/v1/ip-check',
+            'method' => 'POST',
+            'description' => 'IP address lookup: geolocation, blacklist check, ASN info, threat analysis',
+            'authentication' => 'None required',
+            'rate_limit' => 'None',
+            'documentation' => 'https://sthost.pro/pages/tools/ip-check.php'
         ]
     ],
-    'documentation' => 'https://sthost.pro/pages/tools/site-check.php#api',
+    'documentation' => 'https://sthost.pro/pages/tools/',
     'support' => 'https://sthost.pro/pages/contacts.php',
 ];
 

@@ -9,6 +9,7 @@
 
     # Перенаправление на конкретные endpoints
     RewriteRule ^site-check$ site-check.php [L]
+    RewriteRule ^ip-check$ ip-check.php [L]
 </IfModule>
 
 # Security Headers
