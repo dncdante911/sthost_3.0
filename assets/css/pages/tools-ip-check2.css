@@ -1,29 +1,50 @@
-/* ===== TOOLS IP CHECK CSS ===== */
-/* Стили для страницы инструмента проверки IP адресов */
+/* ==========================================================================
+   IP Check Tool - Redesigned CSS
+   Matches main site styling with improved UI/UX
+   ========================================================================== */
 
-/* Основные переменные */
+/* Import main site variables */
 :root {
-    --primary-color: #4A3AFF;
-    --primary-dark: #3829D6;
-    --secondary-color: #6B4EFF;
-    --success-color: #10B981;
-    --warning-color: #F59E0B;
-    --error-color: #EF4444;
-    --info-color: #3B82F6;
-    --light-bg: #F8FAFC;
-    --border-color: #E2E8F0;
-    --text-muted: #64748B;
-    --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-large: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    --border-radius: 12px;
-    --transition: all 0.3s ease;
+    /* Main site colors */
+    --primary-color: #007bff;
+    --primary-dark: #0056b3;
+    --primary-light: #66b3ff;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+
+    /* Hero gradient matching main site */
+    --hero-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+    /* Consistent spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 3rem;
+
+    /* Consistent border radius */
+    --border-radius: 0.375rem;
+    --border-radius-lg: 0.5rem;
+    --border-radius-xl: 0.75rem;
+
+    /* Consistent shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    /* Transitions */
+    --transition: 0.3s ease-in-out;
 }
 
-/* IP Check Hero Section */
+/* ========== Hero Section ========== */
 .ip-check-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 100px 0;
+    background: var(--hero-gradient);
+    padding: 5rem 0 4rem;
     position: relative;
     overflow: hidden;
 }
@@ -35,124 +56,132 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><path d="M30 0c16.569 0 30 13.431 30 30 0 16.569-13.431 30-30 30C13.431 60 0 46.569 0 30 0 13.431 13.431 0 30 0zm0 2C14.536 2 2 14.536 2 30s12.536 28 28 28 28-12.536 28-28S45.464 2 30 2z"/></g></svg>');
-    animation: float 25s infinite linear;
+    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="1"/></g></svg>');
+    animation: float 20s infinite linear;
 }
 
 @keyframes float {
-    0% { transform: translateY(0px) translateX(0px) rotate(0deg); }
-    33% { transform: translateY(-10px) translateX(5px) rotate(2deg); }
-    66% { transform: translateY(5px) translateX(-5px) rotate(-1deg); }
-    100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
 }
 
 .tool-icon {
-    font-size: 4rem;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 3.5rem;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: var(--spacing-lg);
     display: inline-block;
-    animation: pulse 3s infinite;
 }
 
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-}
-
-/* Current IP Card */
+/* ========== Current IP Card ========== */
 .current-ip-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius-lg);
     padding: 1.5rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    max-width: 500px;
-    margin: 0 auto;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+.current-ip-card h5 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1rem;
 }
 
 .current-ip {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
     flex-wrap: wrap;
 }
 
 .ip-address {
-    font-family: 'Courier New', monospace;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #FFD93D;
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffd93d;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--border-radius-lg);
 }
 
-/* IP Check Form */
+/* ========== IP Check Form ========== */
 .ip-check-form {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: var(--border-radius);
+    background: #ffffff;
+    border-radius: var(--border-radius-xl);
     padding: 2rem;
-    margin: 2rem auto;
-    max-width: 700px;
-    box-shadow: var(--shadow-large);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 0 auto;
+    max-width: 800px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--spacing-lg);
 }
 
 .form-label {
     font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.95rem;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: var(--spacing-sm);
     display: block;
-}
-
-.form-control {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: var(--transition);
-    background: #fff;
-    font-family: 'Courier New', monospace;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(74, 58, 255, 0.1);
 }
 
 .input-group {
     display: flex;
-    gap: 1rem;
-    align-items: flex-end;
+    gap: var(--spacing-md);
+    align-items: stretch;
 }
 
 .input-group .form-control {
     flex: 1;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--border-radius-lg);
+    font-size: 1rem;
+    transition: var(--transition);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.input-group .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
 .btn-check {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    background: var(--primary-color);
     color: white;
     border: none;
     padding: 0.875rem 2rem;
-    border-radius: 8px;
+    border-radius: var(--border-radius-lg);
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .btn-check:hover {
+    background: var(--primary-dark);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-check:active {
@@ -165,34 +194,35 @@
     transform: none;
 }
 
-/* Check Options */
+/* ========== Check Options ========== */
 .check-options {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid #e9ecef;
 }
 
 .option-item {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: white;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius-lg);
+    background: #ffffff;
     transition: var(--transition);
     cursor: pointer;
 }
 
 .option-item:hover {
     border-color: var(--primary-color);
-    background: rgba(74, 58, 255, 0.02);
+    background: rgba(0, 123, 255, 0.02);
 }
 
 .option-item input[type="checkbox"] {
     width: 18px;
     height: 18px;
     cursor: pointer;
+    accent-color: var(--primary-color);
 }
 
 .option-item label {
@@ -203,28 +233,484 @@
     gap: 0.5rem;
     font-weight: 500;
     flex: 1;
+    font-size: 0.9375rem;
 }
 
-/* Quick Actions */
+/* ========== Quick Actions ========== */
 .quick-actions {
-    background: rgba(255, 255, 255, 0.05);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border-top: 1px solid #e9ecef;
+    padding: 2rem 0;
 }
 
-/* Loading State */
+.quick-actions h5 {
+    font-size: 0.9375rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+}
+
+/* ========== Features Section ========== */
+.features-section {
+    padding: 4rem 0;
+    background: #ffffff;
+}
+
+.feature-card {
+    background: #ffffff;
+    padding: 2rem 1.5rem;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e9ecef;
+    text-align: center;
+    transition: var(--transition);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-light);
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: var(--border-radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    color: white;
+    font-size: 1.75rem;
+}
+
+.feature-icon.geolocation {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.feature-icon.security {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+}
+
+.feature-icon.network {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.feature-icon.distance {
+    background: linear-gradient(135deg, #28a745, #218838);
+}
+
+.feature-icon.weather {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+}
+
+.feature-icon.history {
+    background: linear-gradient(135deg, #6c757d, #545b62);
+}
+
+.feature-card h5 {
+    margin-bottom: 0.75rem;
+    color: var(--dark-color);
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.feature-card p {
+    color: #6c757d;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ========== Security Badges ========== */
+.security-badges {
+    padding: 4rem 0;
+    background: var(--light-color);
+}
+
+.security-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 1rem;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e9ecef;
+    transition: var(--transition);
+    height: 100%;
+}
+
+.security-badge:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+.security-badge i {
+    font-size: 1.75rem;
+    color: var(--primary-color);
+}
+
+.security-badge span {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+/* ========== Step Cards ========== */
+.step-card {
+    background: #ffffff;
+    padding: 2rem 1.5rem;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e9ecef;
+    text-align: center;
+    transition: var(--transition);
+    height: 100%;
+}
+
+.step-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-light);
+}
+
+.step-number {
+    width: 56px;
+    height: 56px;
+    background: var(--hero-gradient);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 auto 1.25rem;
+}
+
+.step-card h5 {
+    margin-bottom: 0.75rem;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.step-card p {
+    color: #6c757d;
+    font-size: 0.9375rem;
+    margin: 0;
+}
+
+/* ========== Results Section ========== */
+.results-section {
+    padding: 3rem 0;
+    background: var(--light-color);
+}
+
+.result-card {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    padding: 1.75rem;
+    box-shadow: var(--shadow);
+    border: 1px solid #e9ecef;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+}
+
+.result-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.result-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-status {
+    padding: 0.375rem 0.875rem;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-safe {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+}
+
+.status-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+}
+
+.status-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+}
+
+.status-unknown {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+/* ========== IP Info Grid ========== */
+.ip-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--light-color);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid #e9ecef;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+}
+
+.info-value {
+    font-weight: 600;
+    color: var(--dark-color);
+    text-align: right;
+    font-size: 0.9375rem;
+}
+
+.info-value.coordinate {
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.875rem;
+}
+
+/* ========== Map Container ========== */
+.map-container {
+    height: 300px;
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    margin: 1.25rem 0;
+    border: 1px solid #e9ecef;
+}
+
+/* ========== Blacklist Results ========== */
+.blacklist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.blacklist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-lg);
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+.blacklist-safe {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.blacklist-listed {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.blacklist-unknown {
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+/* ========== Threat Intelligence ========== */
+.threat-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+}
+
+.threat-badge {
+    padding: 0.375rem 0.875rem;
+    border-radius: var(--border-radius);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.threat-malware {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--danger-color);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.threat-phishing {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.threat-spam {
+    background: rgba(103, 126, 234, 0.1);
+    color: #667eea;
+    border: 1px solid rgba(103, 126, 234, 0.2);
+}
+
+.threat-botnet {
+    background: rgba(220, 53, 69, 0.2);
+    color: #c82333;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+/* ========== Distance Display ========== */
+.distance-info {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05), rgba(40, 167, 69, 0.1));
+    border: 1px solid rgba(40, 167, 69, 0.2);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin: 1.25rem 0;
+    text-align: center;
+}
+
+.distance-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--success-color);
+    margin-bottom: 0.5rem;
+}
+
+.distance-label {
+    color: #6c757d;
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+/* ========== Weather Widget ========== */
+.weather-widget {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.05), rgba(255, 193, 7, 0.1));
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    margin: 1.25rem 0;
+}
+
+.weather-current {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.weather-icon {
+    font-size: 2.5rem;
+}
+
+.weather-temp {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--warning-color);
+}
+
+.weather-description {
+    color: #6c757d;
+    font-size: 0.9375rem;
+    text-transform: capitalize;
+}
+
+/* ========== Message States ========== */
+.error-message,
+.success-message {
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius-lg);
+    margin: 1.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    font-size: 0.9375rem;
+}
+
+.error-message {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    color: var(--danger-color);
+}
+
+.success-message {
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+    color: var(--success-color);
+}
+
+.error-message i,
+.success-message i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* ========== Copy Button ========== */
+.copy-button {
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    color: #6c757d;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    transition: var(--transition);
+    margin-left: 0.5rem;
+}
+
+.copy-button:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* ========== Loading State ========== */
 .loading {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 1rem;
     padding: 2rem;
-    color: var(--text-muted);
+    color: #6c757d;
 }
 
 .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid var(--border-color);
+    border: 4px solid #e9ecef;
     border-top: 4px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -235,566 +721,112 @@
     100% { transform: rotate(360deg); }
 }
 
-/* Results Section */
-.results-section {
-    padding: 3rem 0;
-    background: var(--light-bg);
-}
-
-.results-grid {
-    display: grid;
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-
-.result-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-soft);
-    border: 1px solid var(--border-color);
-    transition: var(--transition);
-    opacity: 0;
-    transform: translateY(20px);
-    animation: slideInUp 0.5s ease forwards;
-}
-
-.result-card:hover {
-    box-shadow: var(--shadow-medium);
-    transform: translateY(-2px);
-}
-
-@keyframes slideInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.result-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1F2937;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.result-status {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.status-safe {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success-color);
-}
-
-.status-warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--warning-color);
-}
-
-.status-danger {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error-color);
-}
-
-.status-unknown {
-    background: rgba(107, 114, 128, 0.1);
-    color: #6B7280;
-}
-
-/* IP Info Grid */
-.ip-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    background: var(--light-bg);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-
-.info-label {
-    font-weight: 500;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.info-value {
-    font-weight: 600;
-    color: #1F2937;
-    text-align: right;
-}
-
-.info-value.coordinate {
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-}
-
-/* Map Container */
-.map-container {
-    height: 300px;
-    border-radius: 8px;
-    overflow: hidden;
-    margin: 1rem 0;
-    border: 1px solid var(--border-color);
-}
-
-/* Blacklist Results */
-.blacklist-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.blacklist-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-}
-
-.blacklist-safe {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--success-color);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.blacklist-listed {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error-color);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.blacklist-unknown {
-    background: rgba(107, 114, 128, 0.1);
-    color: #6B7280;
-    border: 1px solid rgba(107, 114, 128, 0.2);
-}
-
-/* Threat Intelligence */
-.threat-badges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.threat-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-transform: uppercase;
-}
-
-.threat-malware {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error-color);
-}
-
-.threat-phishing {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--warning-color);
-}
-
-.threat-spam {
-    background: rgba(168, 85, 247, 0.1);
-    color: #8B5CF6;
-}
-
-.threat-botnet {
-    background: rgba(239, 68, 68, 0.2);
-    color: #DC2626;
-}
-
-/* Features Section */
-.features-section {
-    padding: 4rem 0;
-}
-
-.feature-card {
-    background: white;
-    padding: 2rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-soft);
-    text-align: center;
-    transition: var(--transition);
-    height: 100%;
-    border: 1px solid var(--border-color);
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-medium);
-}
-
-.feature-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    color: white;
-    font-size: 2rem;
-}
-
-.feature-icon.geolocation {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.feature-icon.security {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-}
-
-.feature-icon.network {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-}
-
-.feature-icon.distance {
-    background: linear-gradient(135deg, #43e97b, #38f9d7);
-}
-
-.feature-icon.weather {
-    background: linear-gradient(135deg, #fa709a, #fee140);
-}
-
-.feature-icon.history {
-    background: linear-gradient(135deg, #a8edea, #fed6e3);
-}
-
-.feature-card h5 {
-    margin-bottom: 1rem;
-    color: #1F2937;
-    font-weight: 600;
-}
-
-/* Security Badges */
-.security-badges {
-    text-align: center;
-}
-
-.security-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: white;
-    border-radius: 8px;
-    box-shadow: var(--shadow-soft);
-    transition: var(--transition);
-    border: 1px solid var(--border-color);
-}
-
-.security-badge:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-}
-
-.security-badge i {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-.security-badge span {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-}
-
-/* Step Cards */
-.step-card {
-    background: white;
-    padding: 2rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-soft);
-    text-align: center;
-    transition: var(--transition);
-    position: relative;
-    border: 1px solid var(--border-color);
-}
-
-.step-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-medium);
-}
-
-.step-number {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0 auto 1.5rem;
-}
-
-/* Distance Display */
-.distance-info {
-    background: linear-gradient(135deg, rgba(67, 233, 123, 0.1), rgba(56, 249, 215, 0.1));
-    border: 1px solid rgba(67, 233, 123, 0.2);
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1rem 0;
-    text-align: center;
-}
-
-.distance-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #059669;
-    margin-bottom: 0.5rem;
-}
-
-.distance-label {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
-/* Weather Widget */
-.weather-widget {
-    background: linear-gradient(135deg, rgba(250, 112, 154, 0.1), rgba(254, 214, 64, 0.1));
-    border: 1px solid rgba(250, 112, 154, 0.2);
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1rem 0;
-}
-
-.weather-current {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.weather-icon {
-    font-size: 2rem;
-}
-
-.weather-temp {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #DC2626;
-}
-
-.weather-description {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-    text-transform: capitalize;
-}
-
-/* Error States */
-.error-message {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    color: var(--error-color);
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 1rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.error-message i {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-/* Success States */
-.success-message {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    color: var(--success-color);
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 1rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-/* Copy Button */
-.copy-button {
-    background: none;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.75rem;
-    transition: var(--transition);
-}
-
-.copy-button:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-
-/* Responsive Design */
+/* ========== Responsive Design ========== */
 @media (max-width: 768px) {
     .ip-check-hero {
-        padding: 60px 0;
+        padding: 3.5rem 0 2.5rem;
     }
-    
+
+    .tool-icon {
+        font-size: 2.5rem;
+    }
+
+    .current-ip-card {
+        padding: 1.25rem;
+        margin: 0 1rem 1.5rem;
+    }
+
     .ip-check-form {
-        margin: 1rem;
         padding: 1.5rem;
+        margin: 0 1rem;
     }
-    
+
     .input-group {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.875rem;
     }
-    
-    .current-ip {
-        flex-direction: column;
-        gap: 1rem;
+
+    .btn-check {
+        width: 100%;
+        padding: 1rem;
     }
-    
+
     .ip-info-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .blacklist-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .info-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
     }
-    
+
     .info-value {
         text-align: left;
     }
-    
-    .step-card,
-    .feature-card {
-        margin-bottom: 1.5rem;
-    }
-    
-    .security-badge {
-        padding: 0.75rem;
-    }
-    
+
     .check-options .row {
         gap: 1rem;
     }
-    
+
     .option-item {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
     }
 }
 
 @media (max-width: 480px) {
     .ip-check-form {
-        padding: 1rem;
+        padding: 1.25rem;
     }
-    
+
     .btn-check {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.9rem;
+        padding: 0.875rem;
+        font-size: 0.9375rem;
     }
-    
+
     .current-ip-card {
         padding: 1rem;
     }
-    
+
     .ip-address {
         font-size: 1rem;
-        padding: 0.4rem 0.8rem;
+        padding: 0.5rem 1rem;
     }
-    
+
     .result-card {
-        padding: 1rem;
+        padding: 1.25rem;
     }
-    
+
     .feature-icon {
-        width: 60px;
-        height: 60px;
+        width: 56px;
+        height: 56px;
         font-size: 1.5rem;
     }
-    
+
     .step-number {
-        width: 50px;
-        height: 50px;
+        width: 48px;
+        height: 48px;
         font-size: 1.25rem;
     }
-    
+
     .distance-value {
         font-size: 1.5rem;
     }
-    
+
     .weather-temp {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
+    }
+
+    .weather-icon {
+        font-size: 2rem;
     }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --light-bg: #1F2937;
-        --border-color: #374151;
-        --text-muted: #9CA3AF;
-    }
-    
-    .result-card,
-    .feature-card,
-    .step-card,
-    .security-badge {
-        background: #374151;
-        color: #F9FAFB;
-        border-color: #4B5563;
-    }
-    
-    .form-control,
-    .option-item {
-        background: #374151;
-        border-color: #4B5563;
-        color: #F9FAFB;
-    }
-    
-    .info-item {
-        background: #1F2937;
-        border-color: #4B5563;
-    }
-}
-
-/* Print styles */
+/* ========== Print Styles ========== */
 @media print {
     .ip-check-hero,
     .features-section,
@@ -802,13 +834,13 @@
     .quick-actions {
         display: none;
     }
-    
+
     .result-card {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #000;
     }
-    
+
     .ip-check-form {
         display: none;
     }
