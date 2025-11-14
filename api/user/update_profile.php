@@ -28,11 +28,19 @@ $user_id = getUserId();
 try {
     // Отримуємо JSON дані
     $input = json_decode(file_get_contents('php://input'), true);
-    
+
+    // CSRF Protection
+    $csrf_token = $input['csrf_token'] ?? '';
+    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Невірний CSRF токен']);
+        exit;
+    }
+
     $full_name = trim($input['full_name'] ?? '');
     $phone = trim($input['phone'] ?? '');
     $language = $input['language'] ?? 'ua';
-    
+
     // Валідація
     if (empty($full_name) || strlen($full_name) < 2) {
         echo json_encode(['success' => false, 'message' => 'Введіть повне ім\'я (мінімум 2 символи)']);

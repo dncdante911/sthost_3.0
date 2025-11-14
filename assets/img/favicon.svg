@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Storm cloud shape -->
+  <path d="M48 22c-1.2-6.5-6.8-11-13-11-5.2 0-9.8 3-12 7.5C22.5 18 22 18 21.5 18 16.8 18 13 21.8 13 26.5c0 0.5 0 1 0.2 1.5C10 29 8 32 8 35.5 8 40.5 12 44.5 17 44.5h30c5.5 0 10-4.5 10-10 0-5-3.7-9.2-8.5-9.9z" fill="url(#grad1)"/>
+  <!-- Lightning bolt -->
+  <path d="M32 28 L28 38 L33 38 L30 46 L38 34 L33 34 L36 28 Z" fill="#FFD700" stroke="#FFA500" stroke-width="1"/>
+</svg>

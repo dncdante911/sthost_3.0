@@ -28,11 +28,19 @@ $user_id = getUserId();
 try {
     // Отримуємо JSON дані
     $input = json_decode(file_get_contents('php://input'), true);
-    
+
+    // CSRF Protection
+    $csrf_token = $input['csrf_token'] ?? '';
+    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Невірний CSRF токен']);
+        exit;
+    }
+
     $current_password = $input['current_password'] ?? '';
     $new_password = $input['new_password'] ?? '';
     $confirm_password = $input['confirm_password'] ?? '';
-    
+
     // Валідація
     if (empty($current_password)) {
         echo json_encode(['success' => false, 'message' => 'Введіть поточний пароль']);

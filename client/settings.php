@@ -868,10 +868,10 @@ $page_title = 'Налаштування акаунту - STHost';
                         <div>
                             <h5 style="margin: 0 0 0.25rem 0;">Поточний пристрій</h5>
                             <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
-                                <?php echo $_SERVER['HTTP_USER_AGENT'] ?? 'Невідомо'; ?>
+                                <?php echo htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'Невідомо', ENT_QUOTES, 'UTF-8'); ?>
                             </p>
                             <p style="margin: 0; color: var(--text-secondary); font-size: 13px;">
-                                IP: <?php echo $_SERVER['REMOTE_ADDR'] ?? 'Невідомо'; ?>
+                                IP: <?php echo htmlspecialchars($_SERVER['REMOTE_ADDR'] ?? 'Невідомо', ENT_QUOTES, 'UTF-8'); ?>
                             </p>
                         </div>
                     </div>

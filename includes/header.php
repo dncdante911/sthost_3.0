@@ -21,14 +21,20 @@ $page = $page_parts[1] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'StormHosting UA'; ?></title>
     <meta name="description" content="<?php echo isset($meta_description) ? htmlspecialchars($meta_description) : 'Надійний хостинг для вашого бізнесу'; ?>">
-    
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+    <link rel="alternate icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
-    
+
     <!-- Modal Auth CSS -->
     <link rel="stylesheet" href="/assets/css/pages/modal-auth.css">
-   
+
+    <!-- Premium Design Enhancements -->
+    <link rel="stylesheet" href="/assets/css/premium-enhancements.css">
 
 <style>
         :root {
@@ -436,8 +442,7 @@ $page = $page_parts[1] ?? '';
             <div class="container">
                 <!-- Brand Logo -->
                 <a class="navbar-brand" href="/">
-                <!--    <img src="/assets/images/Black.png" class="brand-logo">-->
-                    <span>StormHosting UA</span>
+                    <img src="/assets/img/logo.svg" alt="StormHosting UA" style="height: 40px; margin-right: 10px;">
                 </a>
 
                 <!-- Main Navigation (Desktop) -->

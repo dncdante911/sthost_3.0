@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Storm cloud icon -->
+  <path d="M28 15c-0.6-3.2-3.4-5.5-6.5-5.5-2.6 0-4.9 1.5-6 3.8C15.2 13 14.5 13 14 13c-2.3 0-4.2 1.9-4.2 4.2 0 0.2 0 0.5 0.1 0.8C8.5 18.5 7.5 20 7.5 21.8c0 2.5 2 4.5 4.5 4.5h15c2.8 0 5-2.2 5-5 0-2.5-1.8-4.6-4.2-5z" fill="url(#logoGrad)"/>
+  <!-- Lightning -->
+  <path d="M22 17 L20 22 L22.5 22 L21 27 L25 20.5 L22.5 20.5 L24 17 Z" fill="#FFD700"/>
+  <!-- Text "StormHosting" -->
+  <text x="38" y="22" font-family="'Inter', sans-serif" font-size="18" font-weight="700" fill="#1f2937">StormHosting</text>
+  <text x="38" y="36" font-family="'Inter', sans-serif" font-size="10" font-weight="400" fill="#667eea">Professional Hosting UA</text>
+</svg>
