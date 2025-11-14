@@ -256,7 +256,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     <div class="code-header">
                         <span class="code-lang">POST</span>
                     </div>
-                    <pre><code>https://api.stormhosting.ua/v1/site-check</code></pre>
+                    <pre><code>https://sthost.pro/v1/site-check</code></pre>
                 </div>
             </div>
 
@@ -288,7 +288,7 @@ Content-Type: application/json</code></pre>
                                     <i class="bi bi-clipboard"></i>
                                 </button>
                             </div>
-                            <pre id="code-curl"><code>curl -X POST https://api.stormhosting.ua/v1/site-check \
+                            <pre id="code-curl"><code>curl -X POST https://sthost.pro/v1/site-check \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -308,7 +308,7 @@ Content-Type: application/json</code></pre>
                                 </button>
                             </div>
                             <pre id="code-js"><code>const response = await fetch(
-  'https://api.stormhosting.ua/v1/site-check',
+  'https://sthost.pro/v1/site-check',
   {
     method: 'POST',
     headers: {
@@ -472,7 +472,7 @@ const data = await response.json();</code></pre>
 </section>
 
 <!-- Popular Tools -->
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold">Інші корисні інструменти</h2>
