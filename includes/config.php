@@ -88,14 +88,23 @@ define('ISPMANAGER_URL', 'https://cp.sthost.pro');
 define('ISPMANAGER_USER', 'root');
 define('ISPMANAGER_PASS', '0607Dm$157');
 
-// Libvirt настройки
-define('LIBVIRT_HOST', '192.168.0.4');
-define('LIBVIRT_USER', 'dncdante');
-define('LIBVIRT_URI', 'qemu+ssh://dncdante@localhost/system');
+// Proxmox VE 9 настройки
+define('PROXMOX_HOST', '192.168.0.4'); // IP или hostname вашего Proxmox сервера
+define('PROXMOX_PORT', 8006); // Порт Proxmox API (по умолчанию 8006)
+define('PROXMOX_USER', 'root'); // Пользователь Proxmox
+define('PROXMOX_REALM', 'pam'); // Realm: pam или pve
+define('PROXMOX_PASSWORD', ''); // !!!ВАЖНО: Заполните пароль или используйте API токены!!!
+define('PROXMOX_NODE', 'pve'); // Имя ноды Proxmox (узнайте через: pvesh get /nodes)
 
-// VPS настройки
-define('VPS_TEMPLATES_PATH', '/var/lib/libvirt/images/templates/');
-define('VPS_IMAGES_PATH', '/var/lib/libvirt/images/');
+// Proxmox API Token (РЕКОМЕНДУЕТСЯ вместо пароля!)
+// Создайте токен: Datacenter > Permissions > API Tokens
+define('PROXMOX_TOKEN_ID', ''); // Например: 'root@pam!mytoken'
+define('PROXMOX_TOKEN_SECRET', ''); // Секретный ключ токена
+define('PROXMOX_VERIFY_SSL', false); // Проверка SSL сертификата (false для самоподписанных)
+
+// VPS настройки для Proxmox
+define('PROXMOX_STORAGE', 'local-lvm'); // Хранилище для дисков VPS
+define('PROXMOX_BRIDGE', 'vmbr0'); // Сетевой мост
 
 // WHMCS настройки
 define('WHMCS_URL', 'https://bil.sthost.pro'); // URL вашего WHMCS (измените на актуальный!)
