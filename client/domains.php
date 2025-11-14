@@ -571,7 +571,7 @@ $page_title = 'Управління доменами - STHost';
                             <i class="bi bi-globe2"></i>
                             <h3>У вас немає доменів</h3>
                             <p>Замовте свій перший домен прямо зараз!</p>
-                            <button class="btn-primary" onclick="window.location.href='https://sthost.pro'">
+                            <button class="btn-primary" onclick="window.location.href='/pages/domains/register.php'">
                                 Замовити домен
                             </button>
                         </div>
