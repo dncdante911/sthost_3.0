@@ -1,33 +1,26 @@
-<!DOCTYPE html>
 <?php
+// Захист від прямого доступу
 define('SECURE_ACCESS', true);
 
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+// Конфігурація сторінки
+$page = 'reseller';
+$page_title = 'Реселерський хостинг - StormHosting UA';
+$meta_description = 'Станьте партнером StormHosting. Реселерський хостинг з WHM/cPanel, білий лейбл, підтримка 24/7. Заробляйте на перепродажі хостингу.';
+$meta_keywords = 'реселерський хостинг, партнерська програма, білий лейбл, WHM, cPanel, заробіток на хостингу';
 
-// остальные переменные
+// Додаткові CSS та JS файли для цієї сторінки
+$additional_css = [
+    '/assets/css/pages/hosting-reseller.css'
+];
+
+$additional_js = [
+    '/assets/js/pages/hosting-reseller.js'
+];
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Реселерський хостинг - StormHosting UA</title>
-    <meta name="description" content="Станьте партнером StormHosting. Реселерський хостинг з ISPManager, білий лейбл, підтримка 24/7. Заробляйте на перепродажі хостингу.">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="../../assets/css/main.css">
-    <!-- Reseller Hosting CSS -->
-    <link rel="stylesheet" href="../../assets/css/pages/hosting-reseller.css">
-</head>
-<body>
 
 <!-- Hero Section -->
 <section class="reseller-hero">
@@ -615,7 +608,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                 <button class="btn btn-light btn-lg" onclick="showPartnerForm()">
                     <i class="bi bi-person-plus me-2"></i>Стати партнером
                 </button>
-                <a href="/pages/info/contacts.php" class="btn btn-outline-light btn-lg">
+                <a href="/pages/contacts.php" class="btn btn-outline-light btn-lg">
                     <i class="bi bi-telephone me-2"></i>Зв'язатись з нами
                 </a>
             </div>
@@ -697,13 +690,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
     </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Chart.js для графіків -->
+<!-- Chart.js для графіків прибутку -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Reseller Hosting JS -->
-<script src="../../assets/js/pages/hosting-reseller.js"></script>
- <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
 
-</body>
-</html>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
