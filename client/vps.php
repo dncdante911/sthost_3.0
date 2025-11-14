@@ -335,6 +335,18 @@ $page_title = 'Управління VPS - STHost';
             border-color: var(--warning);
             color: var(--warning);
         }
+
+        .btn-action.btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-action.btn-danger:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
         
         .empty-state {
             text-align: center;
@@ -539,7 +551,7 @@ $page_title = 'Управління VPS - STHost';
             
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                 <h1>Мої VPS сервери</h1>
-                <button class="btn-primary" onclick="window.location.href='https://sthost.pro'">
+                <button class="btn-primary" onclick="window.location.href='/pages/vds/virtual.php'">
                     <i class="bi bi-plus-lg"></i> Замовити VPS
                 </button>
             </div>
@@ -598,7 +610,7 @@ $page_title = 'Управління VPS - STHost';
                             <i class="bi bi-server"></i>
                             <h3>У вас немає VPS серверів</h3>
                             <p>Замовте потужний VPS сервер прямо зараз!</p>
-                            <button class="btn-primary" onclick="window.location.href='https://sthost.pro'">
+                            <button class="btn-primary" onclick="window.location.href='/pages/vds/virtual.php'">
                                 Замовити VPS
                             </button>
                         </div>
@@ -684,10 +696,15 @@ $page_title = 'Управління VPS - STHost';
                                     onclick="window.open('https://bill.sthost.pro', '_blank')">
                                 <i class="bi bi-gear"></i> Керування
                             </button>
-                            <button class="btn-action" 
+                            <button class="btn-action"
                                     onclick="window.open('https://bill.sthost.pro', '_blank')"
                                     ${isPaid ? 'disabled' : ''}>
                                 <i class="bi bi-credit-card"></i> ${isPaid ? 'Оплачено' : 'Оплатити'}
+                            </button>
+                            <button class="btn-action btn-danger"
+                                    onclick="deleteVPS(${server.id}, '${escapeHtml(server.name)}')"
+                                    title="Видалити VPS">
+                                <i class="bi bi-trash"></i> Видалити
                             </button>
                         </div>
                         ${!isPaid ? '<p style="color: var(--warning); font-size: 12px; margin-top: 1rem; text-align: center;"><i class="bi bi-exclamation-triangle"></i> Оплатіть для активації</p>' : ''}
@@ -741,6 +758,42 @@ $page_title = 'Управління VPS - STHost';
         // Close VNC modal
         function closeVncModal() {
             document.getElementById('vncModal').classList.remove('show');
+        }
+
+        // Delete VPS
+        async function deleteVPS(serverId, serverName) {
+            if (!confirm(`⚠️ УВАГА!\n\nВи впевнені що хочете ВИДАЛИТИ VPS "${serverName}"?\n\nУсі дані буде безповоротно втрачено!\n\nЦя дія незворотна!`)) {
+                return;
+            }
+
+            // Подтверждение второе
+            if (!confirm(`Останнє попередження!\n\nВведіть назву VPS для підтвердження: "${serverName}"\n\nНатисніть OK щоб продовжити видалення.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/vps/delete.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        vps_id: serverId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ VPS успішно видалено!');
+                    loadVPS(); // Перезавантажуємо список
+                } else {
+                    alert(`❌ Помилка видалення: ${data.message || 'Невідома помилка'}`);
+                }
+            } catch (error) {
+                console.error('Error deleting VPS:', error);
+                alert('❌ Помилка виконання запиту на видалення');
+            }
         }
 
         // Escape HTML
