@@ -248,6 +248,8 @@
     position: relative;
     transition: all 0.3s ease;
     height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .plan-card:hover {
@@ -299,10 +301,17 @@
     font-size: 1rem;
 }
 
+.plan-features {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 .plan-features ul {
     list-style: none;
     padding: 0;
     margin: 20px 0;
+    flex-grow: 1;
 }
 
 .plan-features li {
@@ -316,6 +325,11 @@
 
 .plan-features i {
     margin-right: 10px;
+}
+
+/* Вирівнювання кнопок по нижньому краю */
+.plan-card .btn {
+    margin-top: auto;
 }
 
 /* Profit Calculator */
