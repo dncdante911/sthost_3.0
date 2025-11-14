@@ -10,17 +10,17 @@ if (!defined('SECURE_ACCESS')) {
     die('Direct access not permitted');
 }
 
-require_once __DIR__ . '/LibvirtManager.php';
+require_once __DIR__ . '/ProxmoxManager.php';
 require_once __DIR__ . '/WHMCSAPI.php';
 
 class VPSManager {
     private $db;
-    private $libvirt;
+    private $proxmox;
     private $billing;
 
     public function __construct($db_connection = null) {
         $this->db = $db_connection ?: DatabaseConnection::getSiteConnection();
-        $this->libvirt = new LibvirtManager();
+        $this->proxmox = new ProxmoxManager();
         $this->billing = new WHMCSAPI();
     }
     
@@ -115,7 +115,7 @@ class VPSManager {
             
             // Генерируем уникальное имя VPS
             $hostname = $config['hostname'] ?? $this->generateHostname();
-            $libvirt_name = 'vps-' . $user_id . '-' . time();
+            $proxmox_vmid = null; // Proxmox автоматически назначит VMID
             $root_password = $config['root_password'] ?? $this->generatePassword();
             $vnc_password = $this->generatePassword(8);
             
@@ -136,11 +136,12 @@ class VPSManager {
                 'plan_id' => $plan_id,
                 'whmcs_service_id' => $billing_order['data']['serviceid'] ?? null,
                 'hostname' => $hostname,
-                'libvirt_name' => $libvirt_name,
+                'proxmox_vmid' => $proxmox_vmid,
+                'proxmox_node' => PROXMOX_NODE ?? 'pve',
                 'ip_address' => $ip_result['ip_address'],
                 'ip_gateway' => $ip_result['gateway'],
                 'ip_netmask' => $ip_result['netmask'],
-                'dns_servers' => json_encode(['192.168.0.10']),
+                'dns_servers' => json_encode(['8.8.8.8', '8.8.4.4']),
                 'os_template' => $config['os_template'],
                 'root_password' => password_hash($root_password, PASSWORD_DEFAULT),
                 'vnc_password' => $vnc_password,
@@ -181,7 +182,7 @@ class VPSManager {
     }
     
     /**
-     * Создание VPS в libvirt
+     * Создание VPS в Proxmox
      */
     public function createVPS($vps_id) {
         try {
@@ -201,25 +202,26 @@ class VPSManager {
             
             // Обновляем статус
             $this->updateVPSStatus($vps_id, 'creating');
-            
-            // Конфигурация для libvirt
-            $libvirt_config = [
-                'name' => $vps_data['libvirt_name'],
+
+            // Конфигурация для Proxmox
+            $proxmox_config = [
+                'name' => $vps_data['hostname'],
                 'memory' => $vps_data['ram_mb'],
                 'cpu_cores' => $vps_data['cpu_cores'],
                 'disk_size' => $vps_data['disk_gb'],
                 'ip_address' => $vps_data['ip_address'],
-                'template_path' => $template_data['libvirt_image_path'],
-                'vnc_password' => $vps_data['vnc_password']
+                'gateway' => $vps_data['ip_gateway'],
+                'template_id' => $template_data['proxmox_template_id'] ?? null,
+                'os_template' => $vps_data['os_template']
             ];
-            
-            // Создаем VPS в libvirt
-            $creation_result = $this->libvirt->createVPS($libvirt_config);
+
+            // Создаем VPS в Proxmox
+            $creation_result = $this->proxmox->createVPS($proxmox_config);
             
             if ($creation_result['success']) {
-                // Обновляем статус и VNC порт
+                // Обновляем статус и Proxmox VMID
                 $this->updateVPSStatus($vps_id, 'active');
-                $this->updateVPSVNC($vps_id, $creation_result['vnc_port'] ?? null);
+                $this->updateVPSProxmoxID($vps_id, $creation_result['vmid']);
                 
                 // Активируем заказ в FOSSBilling
                 if ($vps_data['whmcs_service_id']) {
@@ -269,9 +271,9 @@ class VPSManager {
             
             // Логируем начало действия
             $action_id = $this->logVPSAction($vps_id, $action, 'running');
-            
-            // Выполняем действие в libvirt
-            $result = $this->libvirt->controlVPS($vps_data['libvirt_name'], $action);
+
+            // Выполняем действие в Proxmox
+            $result = $this->proxmox->controlVPS($vps_data['proxmox_vmid'], $action);
             
             if ($result['success']) {
                 // Обновляем статус VPS
@@ -330,11 +332,11 @@ class VPSManager {
                 'new_os' => $new_os_template,
                 'backup_id' => $backup_result['backup_id'] ?? null
             ]);
-            
-            // Переустанавливаем в libvirt
-            $result = $this->libvirt->reinstallVPS(
-                $vps_data['libvirt_name'], 
-                $template_data['libvirt_image_path']
+
+            // Переустанавливаем в Proxmox
+            $result = $this->proxmox->reinstallVPS(
+                $vps_data['proxmox_vmid'],
+                $template_data['proxmox_template_id']
             );
             
             if ($result['success']) {
@@ -395,26 +397,28 @@ class VPSManager {
             
             $vps_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Получаем статус из libvirt для каждого VPS
+            // Получаем статус из Proxmox для каждого VPS
             foreach ($vps_list as &$vps) {
-                $status = $this->libvirt->getVPSStatus($vps['libvirt_name']);
-                if ($status['success']) {
-                    $vps['libvirt_status'] = $status['state'];
-                    $vps['resource_usage'] = [
-                        'cpu_usage' => $status['cpu_usage'] ?? 0,
-                        'memory_usage' => $status['memory_usage'] ?? 0,
-                        'memory_used_mb' => $status['memory_used_mb'] ?? 0
-                    ];
-                }
-                
-                // Получаем VNC информацию
-                $vnc = $this->libvirt->getVNCInfo($vps['libvirt_name']);
-                if ($vnc['success']) {
-                    $vps['vnc'] = [
-                        'host' => $vnc['host'],
-                        'port' => $vnc['port'],
-                        'password' => $vps['vnc_password'] // Из нашей БД
-                    ];
+                if (!empty($vps['proxmox_vmid'])) {
+                    $status = $this->proxmox->getVPSStatus($vps['proxmox_vmid']);
+                    if ($status['success']) {
+                        $vps['proxmox_status'] = $status['state'];
+                        $vps['resource_usage'] = [
+                            'cpu_usage' => $status['cpu_usage'] ?? 0,
+                            'memory_usage' => (($status['memory'] / $status['max_memory']) * 100) ?? 0,
+                            'memory_used_mb' => $status['memory'] ?? 0
+                        ];
+                    }
+
+                    // Получаем VNC информацию
+                    $vnc = $this->proxmox->getVNCInfo($vps['proxmox_vmid']);
+                    if ($vnc['success']) {
+                        $vps['vnc'] = [
+                            'host' => $vnc['host'],
+                            'port' => $vnc['port'],
+                            'ticket' => $vnc['ticket']
+                        ];
+                    }
                 }
                 
                 // Скрываем чувствительную информацию
@@ -452,10 +456,10 @@ class VPSManager {
             $vps_data = $vps['vps'];
             
             $backup_name = $name ?: ('backup-' . date('Y-m-d-H-i-s'));
-            
-            // Создаем снимок в libvirt
-            $snapshot_result = $this->libvirt->createSnapshot(
-                $vps_data['libvirt_name'], 
+
+            // Создаем снимок в Proxmox
+            $snapshot_result = $this->proxmox->createSnapshot(
+                $vps_data['proxmox_vmid'],
                 $backup_name
             );
             
@@ -495,8 +499,8 @@ class VPSManager {
             }
             $vps_data = $vps['vps'];
             
-            // Приостанавливаем в libvirt
-            $result = $this->libvirt->controlVPS($vps_data['libvirt_name'], 'suspend');
+            // Приостанавливаем в Proxmox
+            $result = $this->proxmox->controlVPS($vps_data['proxmox_vmid'], 'suspend');
             
             if ($result['success']) {
                 // Обновляем статус и причину в БД
@@ -537,8 +541,8 @@ class VPSManager {
             }
             $vps_data = $vps['vps'];
             
-            // Возобновляем в libvirt
-            $result = $this->libvirt->controlVPS($vps_data['libvirt_name'], 'resume');
+            // Возобновляем в Proxmox
+            $result = $this->proxmox->controlVPS($vps_data['proxmox_vmid'], 'resume');
             
             if ($result['success']) {
                 // Обновляем статус в БД
@@ -665,19 +669,20 @@ class VPSManager {
     private function createVPSRecord($vps_data) {
         try {
             $sql = "INSERT INTO vps_instances (
-                user_id, plan_id, whmcs_service_id, hostname, libvirt_name,
+                user_id, plan_id, whmcs_service_id, hostname, proxmox_vmid, proxmox_node,
                 ip_address, ip_gateway, ip_netmask, dns_servers, os_template,
                 root_password, vnc_password, status, cpu_cores, ram_mb,
                 disk_gb, bandwidth_gb
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
             )";
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 $vps_data['user_id'], $vps_data['plan_id'],
-                $vps_data['whmcs_service_id'], $vps_data['hostname'], 
-                $vps_data['libvirt_name'], $vps_data['ip_address'], 
+                $vps_data['whmcs_service_id'], $vps_data['hostname'],
+                $vps_data['proxmox_vmid'], $vps_data['proxmox_node'],
+                $vps_data['ip_address'], 
                 $vps_data['ip_gateway'], $vps_data['ip_netmask'], 
                 $vps_data['dns_servers'], $vps_data['os_template'], 
                 $vps_data['root_password'], $vps_data['vnc_password'], 
@@ -823,7 +828,7 @@ class VPSManager {
     }
     
     /**
-     * Маппинг действий libvirt в статусы
+     * Маппинг действий Proxmox в статусы
      */
     private function mapLibvirtActionToStatus($action) {
         $map = [
@@ -838,19 +843,19 @@ class VPSManager {
     }
     
     /**
-     * Обновление VNC информации
+     * Обновление Proxmox VMID
      */
-    private function updateVPSVNC($vps_id, $vnc_port) {
+    private function updateVPSProxmoxID($vps_id, $vmid) {
         try {
             $stmt = $this->db->prepare("
-                UPDATE vps_instances 
-                SET vnc_port = ?, updated_at = NOW() 
+                UPDATE vps_instances
+                SET proxmox_vmid = ?, updated_at = NOW()
                 WHERE id = ?
             ");
-            return $stmt->execute([$vnc_port, $vps_id]);
-            
+            return $stmt->execute([$vmid, $vps_id]);
+
         } catch (Exception $e) {
-            error_log("Update VPS VNC error: " . $e->getMessage());
+            error_log("Update VPS Proxmox ID error: " . $e->getMessage());
             return false;
         }
     }
@@ -901,8 +906,8 @@ class VPSManager {
                 return $vps;
             }
             
-            // Получаем текущую статистику из libvirt
-            $current_stats = $this->libvirt->getResourceUsage($vps['vps']['libvirt_name']);
+            // Получаем текущую статистику из Proxmox
+            $current_stats = $this->proxmox->getResourceUsage($vps['vps']['proxmox_vmid']);
             
             // Получаем историческую статистику из БД
             $interval = match($period) {
@@ -947,8 +952,8 @@ class VPSManager {
                 return false;
             }
             
-            // Получаем статистику из libvirt
-            $stats = $this->libvirt->getResourceUsage($vps['vps']['libvirt_name']);
+            // Получаем статистику из Proxmox
+            $stats = $this->proxmox->getResourceUsage($vps['vps']['proxmox_vmid']);
             if (!$stats['success']) {
                 return false;
             }
@@ -992,8 +997,8 @@ class VPSManager {
             // Создаем финальный бэкап
             $this->createVPSBackup($vps_id, 'before_delete');
             
-            // Удаляем из libvirt
-            $delete_result = $this->libvirt->deleteVPS($vps_data['libvirt_name']);
+            // Удаляем из Proxmox
+            $delete_result = $this->proxmox->deleteVPS($vps_data['proxmox_vmid']);
             
             // Освобождаем IP адрес
             $stmt = $this->db->prepare("
@@ -1022,9 +1027,9 @@ class VPSManager {
             $this->db->commit();
             
             return [
-                'success' => true, 
+                'success' => true,
                 'message' => 'VPS deleted successfully',
-                'libvirt_result' => $delete_result
+                'proxmox_result' => $delete_result
             ];
             
         } catch (Exception $e) {
@@ -1117,8 +1122,8 @@ class VPSManager {
                 'backup_name' => $backup['name']
             ]);
             
-            // Здесь должна быть логика восстановления через libvirt
-            // Для упрощения возвращаем успех
+            // Восстанавливаем из snapshot в Proxmox
+            // TODO: Реализовать через Proxmox API
             
             $this->updateVPSAction($action_id, 'completed');
             
@@ -1166,10 +1171,10 @@ class VPSManager {
                 'backup_id' => $backup_result['backup_id'] ?? null
             ]);
             
-            // Изменяем RAM в libvirt (если увеличиваем)
+            // Изменяем RAM в Proxmox (если увеличиваем)
             if ($new_plan_data['ram_mb'] > $vps_data['ram_mb']) {
-                $resize_result = $this->libvirt->resizeRAM(
-                    $vps_data['libvirt_name'], 
+                $resize_result = $this->proxmox->resizeRAM(
+                    $vps_data['proxmox_vmid'],
                     $new_plan_data['ram_mb']
                 );
                 
