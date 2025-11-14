@@ -1,0 +1,387 @@
+# =============================================================================
+# StormHosting - Main .htaccess Configuration
+# Корневой файл конфигурации для всего сайта
+# =============================================================================
+
+# Включить RewriteEngine
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # =============================================================================
+    # HTTPS Redirect - Перенаправление на HTTPS
+    # =============================================================================
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # =============================================================================
+    # WWW Redirect - Убрать www (или добавить, если нужно)
+    # =============================================================================
+    # Убрать www
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    # Или добавить www (раскомментировать если нужно):
+    # RewriteCond %{HTTP_HOST} !^www\. [NC]
+    # RewriteCond %{HTTP_HOST} !^localhost [NC]
+    # RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]
+
+    # =============================================================================
+    # Исключения - Не обрабатывать эти пути
+    # =============================================================================
+    # Пропустить реальные файлы
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Пропустить реальные директории
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Пропустить API endpoints
+    RewriteRule ^v1/ - [L]
+
+    # Пропустить WHMCS billing
+    RewriteRule ^billing/ - [L]
+
+    # Пропустить assets (CSS, JS, images)
+    RewriteRule ^assets/ - [L]
+
+    # Пропустить uploads
+    RewriteRule ^uploads/ - [L]
+
+    # =============================================================================
+    # Trailing Slash - Удалить слэш в конце (опционально)
+    # =============================================================================
+    # Убрать trailing slash, кроме директорий
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [R=301,L]
+
+    # =============================================================================
+    # Скрытие расширения .php
+    # =============================================================================
+    # Если запрос к файлу без .php, а файл с .php существует
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^(.*)$ $1.php [L]
+
+    # Если запрос напрямую к .php файлу - редирект без .php
+    RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.php [NC]
+    RewriteRule ^ %1 [R=301,L]
+
+    # =============================================================================
+    # Красивые URL для структуры /pages/
+    # =============================================================================
+    # /hosting/domains -> /pages/hosting/domains.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/pages/$1.php -f
+    RewriteRule ^([^/]+)/?$ /pages/$1.php [L]
+
+    # /hosting/domains -> /pages/hosting/domains.php (вложенные)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/pages/$1/$2.php -f
+    RewriteRule ^([^/]+)/([^/]+)/?$ /pages/$1/$2.php [L]
+
+    # /hosting/domains/transfer -> /pages/hosting/domains/transfer.php (глубокая вложенность)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/pages/$1/$2/$3.php -f
+    RewriteRule ^([^/]+)/([^/]+)/([^/]+)/?$ /pages/$1/$2/$3.php [L]
+
+    # =============================================================================
+    # Специальные маршруты
+    # =============================================================================
+    # /tools/site-check -> /pages/tools/site-check.php
+    RewriteRule ^tools/site-check/?$ /pages/tools/site-check.php [L]
+    RewriteRule ^tools/ip-check/?$ /pages/tools/ip-check.php [L]
+
+    # /domains/whois -> /pages/domains/whois.php
+    RewriteRule ^domains/whois/?$ /pages/domains/whois.php [L]
+    RewriteRule ^domains/dns/?$ /pages/domains/dns.php [L]
+    RewriteRule ^domains/transfer/?$ /pages/domains/transfer.php [L]
+
+    # /hosting/vps -> /pages/hosting/vps.php
+    RewriteRule ^hosting/vps/?$ /pages/hosting/vps.php [L]
+    RewriteRule ^hosting/cloud/?$ /pages/hosting/cloud.php [L]
+    RewriteRule ^hosting/domains/?$ /pages/hosting/domains.php [L]
+
+    # /contacts -> /pages/contacts.php
+    RewriteRule ^contacts/?$ /pages/contacts.php [L]
+
+    # =============================================================================
+    # Защита от доступа к служебным файлам
+    # =============================================================================
+    # Запретить доступ к .git
+    RewriteRule ^\.git - [F,L]
+
+    # Запретить доступ к .env файлам
+    RewriteRule ^\.env - [F,L]
+
+    # Запретить доступ к composer файлам
+    RewriteRule ^composer\.(json|lock)$ - [F,L]
+
+    # Запретить доступ к package.json
+    RewriteRule ^package(-lock)?\.json$ - [F,L]
+
+    # Запретить доступ к README и документации
+    RewriteRule ^(README|CHANGELOG|IMPLEMENTATION_GUIDE)\.(md|txt)$ - [F,L]
+</IfModule>
+
+# =============================================================================
+# Security Headers - Заголовки безопасности
+# =============================================================================
+<IfModule mod_headers.c>
+    # Предотвращение MIME-sniffing
+    Header set X-Content-Type-Options "nosniff"
+
+    # Защита от XSS
+    Header set X-XSS-Protection "1; mode=block"
+
+    # Защита от clickjacking
+    Header set X-Frame-Options "SAMEORIGIN"
+
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Permissions Policy
+    Header set Permissions-Policy "geolocation=(self), microphone=(), camera=()"
+
+    # Content Security Policy (настроить под свои нужды)
+    # Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.ipapi.com https://api.open-meteo.com;"
+
+    # Удалить заголовки, раскрывающие информацию о сервере
+    Header unset X-Powered-By
+    Header unset Server
+
+    # HSTS - Принудительное использование HTTPS (включить после тестирования)
+    # Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# =============================================================================
+# PHP Settings - Настройки PHP
+# =============================================================================
+<IfModule mod_php.c>
+    # Скрыть версию PHP
+    php_flag expose_php Off
+
+    # Увеличить лимиты (при необходимости)
+    php_value upload_max_filesize 64M
+    php_value post_max_size 64M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+    php_value memory_limit 256M
+
+    # Включить обработку ошибок (отключить на продакшене)
+    # php_flag display_errors Off
+    # php_flag log_errors On
+    # php_value error_log /var/log/php_errors.log
+</IfModule>
+
+# =============================================================================
+# Compression - Сжатие контента
+# =============================================================================
+<IfModule mod_deflate.c>
+    # Сжимать HTML, CSS, JavaScript, Text, XML и шрифты
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/vnd.ms-fontobject
+    AddOutputFilterByType DEFLATE application/x-font
+    AddOutputFilterByType DEFLATE application/x-font-opentype
+    AddOutputFilterByType DEFLATE application/x-font-otf
+    AddOutputFilterByType DEFLATE application/x-font-truetype
+    AddOutputFilterByType DEFLATE application/x-font-ttf
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE font/opentype
+    AddOutputFilterByType DEFLATE font/otf
+    AddOutputFilterByType DEFLATE font/ttf
+    AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE image/x-icon
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+
+    # Удалить заголовок ETag (для лучшего кеширования)
+    Header unset ETag
+    FileETag None
+</IfModule>
+
+# =============================================================================
+# Browser Caching - Кеширование в браузере
+# =============================================================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+
+    # HTML - короткое кеширование
+    ExpiresByType text/html "access plus 0 seconds"
+
+    # CSS и JavaScript - 1 год (с версионированием)
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+
+    # Изображения - 1 год
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType image/vnd.microsoft.icon "access plus 1 year"
+
+    # Шрифты - 1 год
+    ExpiresByType font/ttf "access plus 1 year"
+    ExpiresByType font/otf "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+
+    # PDF и другие документы - 1 месяц
+    ExpiresByType application/pdf "access plus 1 month"
+
+    # JSON и XML - не кешировать
+    ExpiresByType application/json "access plus 0 seconds"
+    ExpiresByType application/xml "access plus 0 seconds"
+    ExpiresByType text/xml "access plus 0 seconds"
+</IfModule>
+
+# Альтернатива для mod_expires - используйте Cache-Control
+<IfModule mod_headers.c>
+    # CSS и JavaScript
+    <FilesMatch "\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # Изображения
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+        Header set Cache-Control "public, max-age=31536000"
+    </FilesMatch>
+
+    # Шрифты
+    <FilesMatch "\.(ttf|otf|woff|woff2|eot)$">
+        Header set Cache-Control "public, max-age=31536000"
+    </FilesMatch>
+
+    # HTML - не кешировать
+    <FilesMatch "\.(html|htm|php)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+# =============================================================================
+# Error Pages - Кастомные страницы ошибок
+# =============================================================================
+ErrorDocument 400 /error.php?code=400
+ErrorDocument 401 /error.php?code=401
+ErrorDocument 403 /error.php?code=403
+ErrorDocument 404 /error.php?code=404
+ErrorDocument 500 /error.php?code=500
+ErrorDocument 502 /error.php?code=502
+ErrorDocument 503 /error.php?code=503
+
+# =============================================================================
+# Directory Listing - Запретить листинг директорий
+# =============================================================================
+Options -Indexes
+
+# =============================================================================
+# File Access - Защита файлов
+# =============================================================================
+# Запретить доступ к .htaccess и .htpasswd
+<FilesMatch "^\.ht">
+    Require all denied
+</FilesMatch>
+
+# Запретить доступ к backup файлам
+<FilesMatch "\.(bak|backup|old|tmp|swp|sql|log)$">
+    Require all denied
+</FilesMatch>
+
+# Запретить доступ к конфигурационным файлам
+<FilesMatch "^(config|db_connect|settings)\.(php|inc)$">
+    Require all denied
+</FilesMatch>
+
+# =============================================================================
+# MIME Types - Типы файлов
+# =============================================================================
+<IfModule mod_mime.c>
+    # JavaScript
+    AddType application/javascript js
+    AddType application/json json
+    AddType application/ld+json jsonld
+
+    # Видео
+    AddType video/mp4 mp4
+    AddType video/webm webm
+    AddType video/ogg ogv
+
+    # Аудио
+    AddType audio/mp3 mp3
+    AddType audio/ogg ogg
+    AddType audio/wav wav
+
+    # Изображения
+    AddType image/webp webp
+    AddType image/svg+xml svg svgz
+
+    # Шрифты
+    AddType font/ttf ttf
+    AddType font/otf otf
+    AddType font/woff woff
+    AddType font/woff2 woff2
+    AddType application/vnd.ms-fontobject eot
+</IfModule>
+
+# =============================================================================
+# Character Encoding - Кодировка
+# =============================================================================
+AddDefaultCharset UTF-8
+<IfModule mod_mime.c>
+    AddCharset UTF-8 .html .css .js .xml .json .rss .atom
+</IfModule>
+
+# =============================================================================
+# Performance Optimization - Оптимизация производительности
+# =============================================================================
+# Отключить FollowSymLinks (безопасность)
+Options -FollowSymLinks +SymLinksIfOwnerMatch
+
+# Отключить Server Signature
+ServerSignature Off
+
+# =============================================================================
+# Защита от hotlinking изображений (опционально)
+# =============================================================================
+# <IfModule mod_rewrite.c>
+#     RewriteCond %{HTTP_REFERER} !^$
+#     RewriteCond %{HTTP_REFERER} !^https?://(.+\.)?sthost\.pro [NC]
+#     RewriteCond %{REQUEST_URI} \.(jpg|jpeg|png|gif|webp)$ [NC]
+#     RewriteRule .* - [F,L]
+# </IfModule>
+
+# =============================================================================
+# Limit Request Size - Ограничение размера запроса
+# =============================================================================
+<IfModule mod_security.c>
+    # Ограничить размер тела запроса (например, для защиты от DDoS)
+    SecRequestBodyLimit 10485760
+</IfModule>
+
+# =============================================================================
+# Редирект старых URL (примеры, настроить под свои нужды)
+# =============================================================================
+# <IfModule mod_rewrite.c>
+#     # Старые URL на новые
+#     RewriteRule ^old-page\.html$ /new-page [R=301,L]
+#     RewriteRule ^old-directory/(.*)$ /new-directory/$1 [R=301,L]
+# </IfModule>
