@@ -8,6 +8,15 @@ $page_title = 'Перевірка IP адреси - StormHosting UA';
 $meta_description = 'Безкоштовна перевірка IP адреси: геолокація, провайдер, чорні списки, ASN інформація, загрози безпеки.';
 $meta_keywords = 'ip check, перевірка ip, геолокація ip, чорний список ip, ASN lookup, ip blacklist';
 
+// Додаткові CSS та JS файли для цієї сторінки
+$additional_css = [
+    '/assets/css/pages/tools-ip-check2.css'
+];
+
+$additional_js = [
+    '/assets/js/tools-ip-check2.js'
+];
+
 // Підключення конфігурації та БД
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
@@ -15,9 +24,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 // Підключення header
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
-
-<!-- Підключення CSS для сторінки -->
-<link rel="stylesheet" href="/assets/css/pages/tools-ip-check2.css">
 
 <!-- IP Check Hero -->
 <section class="ip-check-hero">
@@ -226,7 +232,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 </section>
 
 <!-- Security Badges -->
-<section class="security-badges py-5 bg-light">
+<section class="security-badges py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-6 fw-bold">Джерела перевірки безпеки</h2>
@@ -318,12 +324,12 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 </section>
 
 <!-- Popular Tools -->
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
             <h2 class="display-5 fw-bold">Інші корисні інструменти</h2>
         </div>
-        
+
         <div class="row g-4">
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
@@ -332,12 +338,12 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     </div>
                     <h5>Site Check</h5>
                     <p class="text-muted">Перевірка доступності сайту</p>
-                    <a href="/tools/site-check" class="btn btn-outline-primary btn-sm">
+                    <a href="/pages/tools/site-check.php" class="btn btn-outline-primary btn-sm">
                         Перевірити
                     </a>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -345,12 +351,12 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     </div>
                     <h5>WHOIS lookup</h5>
                     <p class="text-muted">Інформація про власника домену</p>
-                    <a href="/domains/whois" class="btn btn-outline-primary btn-sm">
+                    <a href="/pages/domains/whois.php" class="btn btn-outline-primary btn-sm">
                         Перевірити
                     </a>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -358,12 +364,12 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     </div>
                     <h5>DNS lookup</h5>
                     <p class="text-muted">Перевірка DNS записів</p>
-                    <a href="/domains/dns" class="btn btn-outline-primary btn-sm">
+                    <a href="/pages/domains/dns.php" class="btn btn-outline-primary btn-sm">
                         Перевірити
                     </a>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -371,7 +377,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     </div>
                     <h5>HTTP Headers</h5>
                     <p class="text-muted">Аналіз HTTP заголовків</p>
-                    <a href="/tools/http-headers" class="btn btn-outline-primary btn-sm">
+                    <a href="/pages/tools/http-headers.php" class="btn btn-outline-primary btn-sm">
                         Перевірити
                     </a>
                 </div>
@@ -379,8 +385,5 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
         </div>
     </div>
 </section>
-
-<!-- Підключення JS для сторінки -->
-<script src="/assets/js/tools-ip-check2.js"></script>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
