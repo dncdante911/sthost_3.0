@@ -36,6 +36,13 @@ $page = $page_parts[1] ?? '';
     <!-- Premium Design Enhancements -->
     <link rel="stylesheet" href="/assets/css/premium-enhancements.css">
 
+    <!-- Additional CSS for specific pages -->
+    <?php if (isset($additional_css) && is_array($additional_css)): ?>
+        <?php foreach ($additional_css as $css_file): ?>
+            <link rel="stylesheet" href="<?php echo htmlspecialchars($css_file); ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
+
 <style>
         :root {
             --primary-color: #3b82f6;

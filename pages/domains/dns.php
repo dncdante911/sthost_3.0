@@ -8,6 +8,15 @@ $page_title = 'DNS Lookup - StormHosting UA';
 $meta_description = 'DNS lookup сервіс для перевірки DNS записів доменів. Перевіряйте A, AAAA, MX, CNAME, TXT та інші DNS записи безкоштовно.';
 $meta_keywords = 'dns lookup, перевірка dns, dns записи, mx записи, а записи, cname записи';
 
+// Додаткові CSS та JS файли для цієї сторінки
+$additional_css = [
+    '/assets/css/pages/domains2.css'
+];
+
+$additional_js = [
+    '/assets/js/domains.js'
+];
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';

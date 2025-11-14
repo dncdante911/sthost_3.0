@@ -8,6 +8,15 @@ $page_title = 'WHOIS Lookup - StormHosting UA';
 $meta_description = 'WHOIS сервіс для перевірки інформації про домени .ua, .com.ua та інші. Дізнайтесь хто власник домену, коли закінчується реєстрація.';
 $meta_keywords = 'whois домен, інформація про домен, власник домену, дата реєстрації домену';
 
+// Додаткові CSS та JS файли для цієї сторінки
+$additional_css = [
+    '/assets/css/pages/domains2.css'
+];
+
+$additional_js = [
+    '/assets/js/domains.js'
+];
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';

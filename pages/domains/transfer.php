@@ -8,6 +8,15 @@ $page_title = 'Перенесення домену - StormHosting UA';
 $meta_description = 'Перенесіть ваш домен до StormHosting UA безкоштовно. Простий процес трансферу доменів з будь-якого реєстратора. Продовження на 1 рік включено.';
 $meta_keywords = 'трансфер доменів, перенесення доменів, домен transfer, зміна реєстратора';
 
+// Додаткові CSS та JS файли для цієї сторінки
+$additional_css = [
+    '/assets/css/pages/domains-transfer.css'
+];
+
+$additional_js = [
+    '/assets/js/domains-transfer.js'
+];
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
