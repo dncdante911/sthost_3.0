@@ -1,23 +1,16 @@
 <?php
-// Защита от прямого доступа
+// Захист від прямого доступу
 define('SECURE_ACCESS', true);
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Конфігурація сторінки
+$page = 'whois';
+$page_title = 'WHOIS Lookup - StormHosting UA';
+$meta_description = 'WHOIS сервіс для перевірки інформації про домени .ua, .com.ua та інші. Дізнайтесь хто власник домену, коли закінчується реєстрація.';
+$meta_keywords = 'whois домен, інформація про домен, власник домену, дата реєстрації домену';
 
-// остальные переменные
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
-
-// Настройки страницы
-$page_title = t('domains_whois') . ' - ' . t('site_name');
-$meta_description = 'WHOIS сервіс для перевірки інформації про домени .ua, .com.ua та інші. Дізнайтесь хто власник домену, коли закінчується реєстрація.';
-$meta_keywords = 'whois домен, інформація про домен, власник домену, дата реєстрації домену';
-$page_css = 'domains-whois';
-$page_js = 'domains-whois';
-$need_api = true;
 
 // Получаем WHOIS серверы из БД
 try {
@@ -141,22 +134,6 @@ function performWhoisLookup($domain, $whois_server) {
 }
 
 ?>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор хостингу - StormHosting UA</title>
-    <meta name="description" content="Розрахуйте вартість хостингу під ваші потреби. Віртуальний хостинг, VPS, виділені сервери. Миттєвий розрахунок ціни.">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="../../assets/css/main.css">
-    <!-- Calculator CSS -->
-     <link rel="stylesheet" href="/assets/css/pages/domains2.css">
-</head>
 
 <!-- WHOIS Hero -->
 <section class="whois-hero py-5">
@@ -344,10 +321,10 @@ function performWhoisLookup($domain, $whois_server) {
                     </div>
                     <h4>DNS Lookup</h4>
                     <p>Перевірте DNS записи домену</p>
-                    <a href="/domains/dns" class="btn btn-outline-primary">Перевірити DNS</a>
+                    <a href="/pages/domains/dns.php" class="btn btn-outline-primary">Перевірити DNS</a>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
                 <div class="tool-card text-center h-100">
                     <div class="tool-icon">
@@ -355,10 +332,10 @@ function performWhoisLookup($domain, $whois_server) {
                     </div>
                     <h4>Пошук доменів</h4>
                     <p>Знайдіть доступні домени</p>
-                    <a href="/domains/register" class="btn btn-outline-primary">Знайти домен</a>
+                    <a href="/pages/domains/register.php" class="btn btn-outline-primary">Знайти домен</a>
                 </div>
             </div>
-            
+
             <div class="col-lg-4">
                 <div class="tool-card text-center h-100">
                     <div class="tool-icon">
@@ -366,15 +343,92 @@ function performWhoisLookup($domain, $whois_server) {
                     </div>
                     <h4>Перенесення доменів</h4>
                     <p>Перенесіть домен до нас</p>
-                    <a href="/domains/transfer" class="btn btn-outline-primary">Перенести</a>
+                    <a href="/pages/domains/transfer.php" class="btn btn-outline-primary">Перенести</a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+<style>
+.zone-card {
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.zone-card:hover {
+    border-color: var(--premium-primary, #667eea);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.zone-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 5px;
+}
+
+.zone-server {
+    font-size: 12px;
+    color: #999;
+}
+
+.whois-result-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+}
+
+.whois-result-card.available {
+    border-left: 4px solid #28a745;
+}
+
+.whois-result-card.registered {
+    border-left: 4px solid #dc3545;
+}
+
+.whois-data-table {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.whois-data-table tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.whois-data-table td {
+    padding: 12px 8px;
+}
+
+.whois-data-table td:first-child {
+    font-weight: 600;
+    color: #666;
+    width: 200px;
+}
+
+.raw-data {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+</style>
+
 <script>
-// Константы для скрипта
+// ========================================
+// WHOIS Configuration
+// ========================================
 window.whoisConfig = {
     lookupUrl: '?ajax=1',
     csrfToken: '<?php echo generateCSRFToken(); ?>',
@@ -383,9 +437,200 @@ window.whoisConfig = {
         searching: 'Виконуємо WHOIS запит...',
         error: 'Помилка запиту',
         notFound: 'Домен не знайдено',
-        available: 'Домен доступен для реєстрації'
+        available: 'Домен доступний для реєстрації'
     }
 };
+
+// ========================================
+// WHOIS Form Handler
+// ========================================
+document.addEventListener('DOMContentLoaded', function() {
+    const whoisForm = document.getElementById('whoisForm');
+    const resultsDiv = document.getElementById('whoisResults');
+
+    if (whoisForm) {
+        whoisForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const domainInput = document.getElementById('whoisDomain');
+            const domain = domainInput.value.trim().toLowerCase();
+
+            if (!domain) {
+                alert('Введіть домен для перевірки');
+                return;
+            }
+
+            // Validate domain format
+            if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]\.[a-z]{2,}$|^[a-z0-9]\.[a-z]{2,}$/.test(domain)) {
+                alert('Невірний формат домену');
+                return;
+            }
+
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Завантаження...</span>
+                    </div>
+                    <p class="mt-3 text-muted">${window.whoisConfig.translations.searching}</p>
+                </div>
+            `;
+
+            // Perform WHOIS lookup
+            fetch(window.whoisConfig.lookupUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'whois_lookup',
+                    domain: domain,
+                    csrf_token: window.whoisConfig.csrfToken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+
+                displayWhoisResults(data);
+            })
+            .catch(error => {
+                showError(window.whoisConfig.translations.error);
+                console.error('WHOIS Error:', error);
+            });
+        });
+    }
+
+    // Quick lookup from zone cards
+    document.querySelectorAll('.zone-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const zone = this.querySelector('.zone-name').textContent;
+            const domainInput = document.getElementById('whoisDomain');
+            domainInput.value = 'example' + zone;
+            domainInput.focus();
+        });
+    });
+});
+
+// ========================================
+// Display WHOIS Results
+// ========================================
+function displayWhoisResults(data) {
+    const resultsDiv = document.getElementById('whoisResults');
+
+    if (data.data.status === 'available') {
+        resultsDiv.innerHTML = `
+            <div class="whois-result-card available">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle text-success" style="font-size: 48px;"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-1">${escapeHtml(data.domain)}</h3>
+                        <p class="text-success mb-0 fw-bold">Домен доступний для реєстрації!</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Цей домен не зареєстрований та доступний для придбання.
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="/pages/domains/register.php" class="btn btn-primary btn-lg">
+                        <i class="bi bi-cart-plus"></i>
+                        Зареєструвати цей домен
+                    </a>
+                </div>
+            </div>
+        `;
+    } else {
+        // Registered domain
+        const whoisData = data.data;
+        resultsDiv.innerHTML = `
+            <div class="whois-result-card registered">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="me-3">
+                        <i class="bi bi-x-circle text-danger" style="font-size: 48px;"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-1">${escapeHtml(data.domain)}</h3>
+                        <p class="text-danger mb-0 fw-bold">Домен зареєстрований</p>
+                    </div>
+                </div>
+
+                <table class="whois-data-table">
+                    <tr>
+                        <td>Реєстратор:</td>
+                        <td>${escapeHtml(whoisData.registrar || 'N/A')}</td>
+                    </tr>
+                    <tr>
+                        <td>Дата реєстрації:</td>
+                        <td>${escapeHtml(whoisData.creation_date || 'N/A')}</td>
+                    </tr>
+                    <tr>
+                        <td>Дата закінчення:</td>
+                        <td>${escapeHtml(whoisData.expiration_date || 'N/A')}</td>
+                    </tr>
+                    <tr>
+                        <td>Останнє оновлення:</td>
+                        <td>${escapeHtml(whoisData.updated_date || 'N/A')}</td>
+                    </tr>
+                    <tr>
+                        <td>Статус:</td>
+                        <td>${escapeHtml(whoisData.status || 'N/A')}</td>
+                    </tr>
+                    ${whoisData.name_servers && whoisData.name_servers.length > 0 ? `
+                    <tr>
+                        <td>Name Servers:</td>
+                        <td>${whoisData.name_servers.map(ns => escapeHtml(ns)).join('<br>')}</td>
+                    </tr>
+                    ` : ''}
+                </table>
+
+                <div class="mt-4">
+                    <button class="btn btn-outline-secondary" onclick="toggleRawData()">
+                        <i class="bi bi-code-slash"></i>
+                        Показати raw WHOIS дані
+                    </button>
+                </div>
+
+                <div id="rawWhoisData" class="raw-data" style="display: none;">
+${escapeHtml(whoisData.raw_data || 'No raw data available')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Scroll to results
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function toggleRawData() {
+    const rawData = document.getElementById('rawWhoisData');
+    if (rawData) {
+        rawData.style.display = rawData.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function showError(message) {
+    const resultsDiv = document.getElementById('whoisResults');
+    resultsDiv.innerHTML = `
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Помилка:</strong> ${escapeHtml(message)}
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 </script>
 
- <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
