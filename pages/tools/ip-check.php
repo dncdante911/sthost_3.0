@@ -10,11 +10,11 @@ $meta_keywords = 'ip check, перевірка ip, геолокація ip, чо
 
 // Додаткові CSS та JS файли для цієї сторінки
 $additional_css = [
-    '/assets/css/pages/tools-ip-check2.css'
+    '/assets/css/pages/tools-ip-check2.css?v=' . time()
 ];
 
 $additional_js = [
-    '/assets/js/tools-ip-check2.js'
+    '/assets/js/tools-ip-check2.js?v=' . time()
 ];
 
 // Підключення конфігурації та БД

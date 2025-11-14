@@ -10,11 +10,11 @@ $meta_keywords = 'перевірка сайту, site checker, uptime monitor, �
 
 // Додаткові CSS та JS файли для цієї сторінки
 $additional_css = [
-    '/assets/css/pages/tools-site-check.css'
+    '/assets/css/pages/tools-site-check.css?v=' . time()
 ];
 
 $additional_js = [
-    '/assets/js/tools-site-check.js'
+    '/assets/js/tools-site-check.js?v=' . time()
 ];
 
 // Підключення конфігурації та БД
