@@ -1,0 +1,282 @@
+/**
+ * Premium Design Enhancements for StormHosting UA
+ * Modern, prestigious styling improvements
+ */
+
+/* ========================================
+   Enhanced Color Scheme
+   ======================================== */
+:root {
+    /* Premium Color Palette */
+    --premium-primary: #667eea;
+    --premium-secondary: #764ba2;
+    --premium-accent: #00d4ff;
+    --premium-gold: #FFD700;
+    --premium-dark: #1a1a2e;
+    --premium-light: #f8f9ff;
+
+    /* Gradients */
+    --premium-gradient-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --premium-gradient-accent: linear-gradient(135deg, #00d4ff 0%, #667eea 100%);
+    --premium-gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+
+    /* Shadows */
+    --premium-shadow-sm: 0 2px 8px rgba(102, 126, 234, 0.15);
+    --premium-shadow-md: 0 4px 16px rgba(102, 126, 234, 0.2);
+    --premium-shadow-lg: 0 8px 32px rgba(102, 126, 234, 0.25);
+    --premium-shadow-xl: 0 16px 48px rgba(102, 126, 234, 0.3);
+}
+
+/* ========================================
+   Trust Badges Styling
+   ======================================== */
+.trust-badges {
+    background: linear-gradient(to bottom, transparent, rgba(102, 126, 234, 0.05));
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.trust-badges .badge-item {
+    padding: 10px;
+    transition: transform 0.3s ease;
+}
+
+.trust-badges .badge-item:hover {
+    transform: translateY(-5px);
+}
+
+.trust-badges .badge-item i {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* ========================================
+   Enhanced Buttons
+   ======================================== */
+.btn-premium {
+    background: var(--premium-gradient-main);
+    border: none;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: var(--premium-shadow-md);
+    transition: all 0.3s ease;
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--premium-shadow-lg);
+    color: white;
+}
+
+.btn-premium-outline {
+    background: transparent;
+    border: 2px solid var(--premium-primary);
+    color: var(--premium-primary);
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-premium-outline:hover {
+    background: var(--premium-gradient-main);
+    border-color: transparent;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   Enhanced Cards
+   ======================================== */
+.premium-card {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: var(--premium-shadow-sm);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.premium-card:hover {
+    box-shadow: var(--premium-shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--premium-primary);
+}
+
+.premium-card-header {
+    background: var(--premium-gradient-main);
+    color: white;
+    padding: 20px;
+    border-radius: 16px 16px 0 0;
+    margin: -30px -30px 20px -30px;
+}
+
+/* ========================================
+   Premium Header Enhancements
+   ======================================== */
+.main-header {
+    backdrop-filter: blur(10px);
+    box-shadow: var(--premium-shadow-md);
+}
+
+.navbar-brand img {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   Premium Footer Enhancements
+   ======================================== */
+.footer {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--premium-gradient-accent);
+}
+
+/* ========================================
+   Premium Animations
+   ======================================== */
+@keyframes premium-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.premium-float {
+    animation: premium-float 3s ease-in-out infinite;
+}
+
+@keyframes premium-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.6); }
+}
+
+.premium-glow {
+    animation: premium-glow 2s ease-in-out infinite;
+}
+
+/* ========================================
+   Premium Text Styles
+   ======================================== */
+.text-premium-gradient {
+    background: var(--premium-gradient-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+.text-premium-gold {
+    background: var(--premium-gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 700;
+}
+
+/* ========================================
+   Premium Badges
+   ======================================== */
+.premium-badge {
+    background: var(--premium-gradient-main);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--premium-shadow-sm);
+}
+
+.premium-badge-gold {
+    background: var(--premium-gradient-gold);
+    color: #1a1a2e;
+}
+
+/* ========================================
+   Responsive Enhancements
+   ======================================== */
+@media (max-width: 768px) {
+    .trust-badges {
+        gap: 2rem !important;
+    }
+
+    .trust-badges .badge-item {
+        flex: 0 0 calc(50% - 1rem);
+    }
+}
+
+@media (max-width: 576px) {
+    .trust-badges .badge-item {
+        flex: 0 0 100%;
+    }
+}
+
+/* ========================================
+   Premium Features Section
+   ======================================== */
+.premium-feature-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--premium-gradient-main);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    box-shadow: var(--premium-shadow-md);
+    margin-bottom: 20px;
+}
+
+/* ========================================
+   Premium Pricing Cards
+   ======================================== */
+.premium-pricing-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-pricing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--premium-gradient-main);
+}
+
+.premium-pricing-popular {
+    border: 2px solid var(--premium-primary);
+    transform: scale(1.05);
+}
+
+.premium-pricing-popular::after {
+    content: 'Популярний';
+    position: absolute;
+    top: 20px;
+    right: -30px;
+    background: var(--premium-gradient-gold);
+    color: #1a1a2e;
+    padding: 4px 40px;
+    transform: rotate(45deg);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}

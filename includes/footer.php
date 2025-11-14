@@ -91,9 +91,41 @@ html, body {
                 </div>
             </div>
         </div>
-        
+
+        <!-- Trust Badges -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="trust-badges d-flex justify-content-center align-items-center flex-wrap gap-4 py-3">
+                    <div class="badge-item text-center">
+                        <i class="bi bi-shield-check fs-2 text-success"></i>
+                        <div class="small mt-1">SSL Захист</div>
+                    </div>
+                    <div class="badge-item text-center">
+                        <i class="bi bi-lightning-charge fs-2 text-warning"></i>
+                        <div class="small mt-1">99.9% Uptime</div>
+                    </div>
+                    <div class="badge-item text-center">
+                        <i class="bi bi-headset fs-2 text-info"></i>
+                        <div class="small mt-1">24/7 Підтримка</div>
+                    </div>
+                    <div class="badge-item text-center">
+                        <i class="bi bi-geo-alt fs-2 text-primary"></i>
+                        <div class="small mt-1">UA Датацентр</div>
+                    </div>
+                    <div class="badge-item text-center">
+                        <i class="bi bi-credit-card fs-2" style="color: #667eea;"></i>
+                        <div class="small mt-1">Безпечні Платежі</div>
+                    </div>
+                    <div class="badge-item text-center">
+                        <i class="bi bi-star-fill fs-2" style="color: #FFD700;"></i>
+                        <div class="small mt-1">Рейтинг 4.9/5</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <hr class="my-4">
-        
+
         <div class="row align-items-center">
             <div class="col-md-6">
                 <p class="mb-0">&copy; <?php echo date('Y'); ?> StormHosting UA. Всі права захищені.</p>
