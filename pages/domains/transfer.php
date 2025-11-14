@@ -1,23 +1,24 @@
 <?php
-// Защита от прямого доступа
+// Захист від прямого доступу
 define('SECURE_ACCESS', true);
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Конфігурація сторінки
+$page = 'transfer';
+$page_title = 'Перенесення домену - StormHosting UA';
+$meta_description = 'Перенесіть ваш домен до StormHosting UA безкоштовно. Простий процес трансферу доменів з будь-якого реєстратора. Продовження на 1 рік включено.';
+$meta_keywords = 'трансфер доменів, перенесення доменів, домен transfer, зміна реєстратора';
 
-// остальные переменные
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 
-// Настройки страницы
-$page_title = 'Перенесення домену - StormHosting UA';
-$meta_description = 'Перенесіть ваш домен до StormHosting UA безкоштовно. Простий процес трансферу доменів з будь-якого реєстратора. Продовження на 1 рік включено.';
-$meta_keywords = 'трансфер доменів, перенесення доменів, домен transfer, зміна реєстратора';
-$page_css = 'domains';
-$page_js = 'domains';
-$need_api = true;
+// ========================================
+// WHMCS INTEGRATION CONFIGURATION
+// ========================================
+$whmcs_config = [
+    'billing_url' => 'https://bill.sthost.pro',
+    'direct_checkout' => false
+];
 
 // Получаем поддерживаемые зоны для трансфера
 try {
@@ -96,20 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 ?>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор хостингу - StormHosting UA</title>
-    <meta name="description" content="Розрахуйте вартість хостингу під ваші потреби. Віртуальний хостинг, VPS, виділені сервери. Миттєвий розрахунок ціни.">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Calculator CSS -->
-    <link rel="stylesheet" href="/assets/css/pages/domains-transfer.css">
-</head>
 
 <!-- Transfer Hero -->
 <section class="transfer-hero py-5">
@@ -246,110 +233,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <p>Заповніть форму для початку процесу трансферу</p>
                     </div>
                     
-                    <form method="POST" class="transfer-form">
-                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                        <input type="hidden" name="action" value="start_transfer">
-                        
+                    <form id="transferForm" class="transfer-form" onsubmit="return handleTransferSubmit(event)">
                         <div class="row g-4">
-                            <div class="col-md-6">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Швидкий трансфер через WHMCS:</strong> Введіть домен та натисніть кнопку нижче для переходу до системи біллінгу, де ви зможете оплатити та завершити трансфер.
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
                                 <label for="domain" class="form-label">Домен для трансферу *</label>
-                                <div class="input-group">
+                                <div class="input-group input-group-lg">
                                     <span class="input-group-text">
                                         <i class="bi bi-globe"></i>
                                     </span>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="domain" 
+                                    <input type="text"
+                                           class="form-control"
+                                           id="domain"
                                            name="domain"
-                                           placeholder="example.com"
+                                           placeholder="example.com або example.ua"
                                            pattern="[a-zA-Z0-9.-]+"
-                                           value="<?php echo escapeOutput($_POST['domain'] ?? ''); ?>"
                                            required>
                                 </div>
                                 <div class="form-text">Введіть повне ім'я домену включно з зоною</div>
                             </div>
-                            
-                            <div class="col-md-6">
-                                <label for="auth_code" class="form-label">Код авторизації (EPP/Auth код) *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-key"></i>
-                                    </span>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="auth_code" 
-                                           name="auth_code"
-                                           placeholder="Auth-Code123"
-                                           required>
-                                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Код авторизації можна отримати у поточного реєстратора домену">
-                                        <i class="bi bi-question-circle"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="contact_email" class="form-label">Email для зв'язку *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-envelope"></i>
-                                    </span>
-                                    <input type="email" 
-                                           class="form-control" 
-                                           id="contact_email" 
-                                           name="contact_email"
-                                           placeholder="your@email.com"
-                                           value="<?php echo escapeOutput($_POST['contact_email'] ?? ''); ?>"
-                                           required>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label for="phone" class="form-label">Телефон</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="bi bi-telephone"></i>
-                                    </span>
-                                    <input type="tel" 
-                                           class="form-control" 
-                                           id="phone" 
-                                           name="phone"
-                                           placeholder="+380 XX XXX XX XX"
-                                           value="<?php echo escapeOutput($_POST['phone'] ?? ''); ?>">
-                                </div>
-                            </div>
-                            
+
                             <div class="col-12">
-                                <label for="notes" class="form-label">Додаткові примітки</label>
-                                <textarea class="form-control" 
-                                          id="notes" 
-                                          name="notes" 
-                                          rows="3"
-                                          placeholder="Вкажіть будь-яку додаткову інформацію або особливі вимоги..."><?php echo escapeOutput($_POST['notes'] ?? ''); ?></textarea>
+                                <div class="transfer-note">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi bi-lightbulb text-warning me-3" style="font-size: 24px;"></i>
+                                        <div>
+                                            <h6 class="mb-2">Важливо перед трансфером:</h6>
+                                            <ul class="mb-0 small">
+                                                <li>Переконайтеся що домен розблоковано для трансферу</li>
+                                                <li>Отримайте EPP/Auth код від поточного реєстратора</li>
+                                                <li>Домен повинен бути зареєстрований більше 60 днів тому</li>
+                                                <li>Email адреса власника домену має бути актуальною</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            
+
                             <div class="col-12">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="agree_terms" required>
                                     <label class="form-check-label" for="agree_terms">
-                                        Я погоджуюсь з <a href="/info/rules" target="_blank">умовами трансферу</a> та підтверджую, що є власником домену або маю повноваження на його трансфер *
+                                        Я підтверджую, що маю права на трансфер цього домену та погоджуюсь з <a href="/info/rules" target="_blank">умовами послуг</a> *
                                     </label>
                                 </div>
                             </div>
-                            
-                            <div class="col-12">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="auto_renew">
-                                    <label class="form-check-label" for="auto_renew">
-                                        Увімкнути автоматичне продовження домену
-                                    </label>
-                                </div>
-                            </div>
-                            
+
                             <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="bi bi-arrow-right-circle"></i>
-                                    Подати заявку на трансфер
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="bi bi-cart-plus"></i>
+                                    Перейти до оформлення трансферу
                                 </button>
+                                <p class="text-muted mt-3 small">
+                                    <i class="bi bi-shield-lock"></i> Безпечна оплата через WHMCS
+                                </p>
                             </div>
                         </div>
                     </form>
@@ -380,6 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     <th>Доменна зона</th>
                                     <th>Трансфер</th>
                                     <th>Продовження</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -396,6 +340,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                         <small class="text-muted d-block">+ 1 рік продовження</small>
                                     </td>
                                     <td><?php echo formatPrice($zone['price_renewal']); ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="quickTransfer('<?php echo escapeOutput($zone['zone']); ?>')">
+                                            <i class="bi bi-arrow-right-circle"></i> Трансфер
+                                        </button>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -620,73 +569,180 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     </div>
 </section>
 
+<style>
+.transfer-note {
+    background: linear-gradient(to right, rgba(255, 193, 7, 0.1), transparent);
+    border-left: 4px solid #ffc107;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.transfer-note h6 {
+    color: #856404;
+    font-weight: 600;
+}
+
+.transfer-note ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.transfer-note ul li {
+    padding: 5px 0;
+    color: #666;
+}
+
+.transfer-note ul li:before {
+    content: "✓ ";
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.price-highlight {
+    color: var(--premium-primary, #667eea);
+    font-weight: 700;
+    font-size: 18px;
+}
+</style>
+
 <script>
-// Константы для скрипта
+// ========================================
+// WHMCS Transfer Configuration
+// ========================================
 window.transferConfig = {
-    csrfToken: '<?php echo generateCSRFToken(); ?>',
+    whmcs: {
+        billingUrl: '<?php echo $whmcs_config['billing_url']; ?>',
+        directCheckout: <?php echo $whmcs_config['direct_checkout'] ? 'true' : 'false'; ?>
+    },
     supportedZones: <?php echo json_encode(array_column($transferable_zones, 'zone')); ?>,
     translations: {
         invalidDomain: 'Невірний формат домену',
         unsupportedZone: 'Ця доменна зона не підтримується для трансферу',
-        authCodeRequired: 'Код авторизації обов\'язковий',
-        emailRequired: 'Email обов\'язковий для зв\'язку'
+        enterDomain: 'Будь ласка, введіть домен',
+        agreeTerms: 'Будь ласка, погодьтеся з умовами'
     }
 };
 
-function openChat() {
-    // Здесь будет код для открытия чата
-    alert('Онлайн чат буде доступний незабаром');
+// ========================================
+// Transfer Form Handler (WHMCS Integration)
+// ========================================
+function handleTransferSubmit(event) {
+    event.preventDefault();
+
+    const domainInput = document.getElementById('domain');
+    const agreeTerms = document.getElementById('agree_terms');
+
+    const domain = domainInput.value.trim().toLowerCase();
+
+    // Validation
+    if (!domain) {
+        alert(window.transferConfig.translations.enterDomain);
+        domainInput.focus();
+        return false;
+    }
+
+    if (!validateDomainFormat(domain)) {
+        alert(window.transferConfig.translations.invalidDomain);
+        domainInput.focus();
+        return false;
+    }
+
+    if (!agreeTerms.checked) {
+        alert(window.transferConfig.translations.agreeTerms);
+        return false;
+    }
+
+    // Redirect to WHMCS transfer
+    transferDomainToWHMCS(domain);
+    return false;
 }
 
-// Валидация формы трансфера
+// ========================================
+// Quick Transfer from Price Table
+// ========================================
+function quickTransfer(zone) {
+    const domain = prompt(`Введіть назву домену для трансферу (без ${zone}):\n\nНаприклад: mycompany`);
+
+    if (!domain || domain.trim() === '') {
+        return;
+    }
+
+    const cleanDomain = domain.trim().toLowerCase();
+
+    // Validate domain name part
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(cleanDomain)) {
+        alert('Невірний формат імені домену. Використовуйте лише літери, цифри та дефіси.');
+        return;
+    }
+
+    const fullDomain = cleanDomain + zone;
+    transferDomainToWHMCS(fullDomain);
+}
+
+// ========================================
+// WHMCS Transfer Redirect
+// ========================================
+function transferDomainToWHMCS(domain) {
+    const billingUrl = window.transferConfig.whmcs.billingUrl;
+    const transferUrl = `${billingUrl}/cart.php?a=add&domain=transfer&query=${encodeURIComponent(domain)}`;
+
+    // Open in new tab
+    window.open(transferUrl, '_blank');
+
+    // Show success message
+    setTimeout(() => {
+        alert(`✓ Перехід до оформлення трансферу домену: ${domain}\n\nВи будете перенаправлені в систему біллінгу для введення коду авторизації та оплати.`);
+    }, 500);
+}
+
+// ========================================
+// Domain Validation
+// ========================================
+function validateDomainFormat(domain) {
+    // Check basic domain format
+    const domainPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]\.[a-z]{2,}$|^[a-z0-9]\.[a-z]{2,}$/;
+    return domainPattern.test(domain);
+}
+
+function openChat() {
+    alert('Онлайн чат буде доступний незабаром.\n\nНаразі ви можете зв\'язатись з нами:\n• Email: domains@sthost.pro\n• Telegram: @sthost_support');
+}
+
+// ========================================
+// Initialize
+// ========================================
 document.addEventListener('DOMContentLoaded', function() {
-    const transferForm = document.querySelector('.transfer-form');
     const domainInput = document.getElementById('domain');
-    
-    if (transferForm && domainInput) {
+
+    if (domainInput) {
+        // Real-time validation feedback
         domainInput.addEventListener('input', function(e) {
-            const domain = e.target.value.toLowerCase();
-            const isValid = /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain);
-            
-            e.target.classList.toggle('is-invalid', !isValid && domain.length > 0);
+            const domain = e.target.value.toLowerCase().trim();
+
+            if (domain.length === 0) {
+                e.target.classList.remove('is-invalid', 'is-valid');
+                return;
+            }
+
+            const isValid = validateDomainFormat(domain);
+            e.target.classList.toggle('is-invalid', !isValid);
             e.target.classList.toggle('is-valid', isValid);
         });
-        
-        transferForm.addEventListener('submit', function(e) {
-            const domain = domainInput.value;
-            const authCode = document.getElementById('auth_code').value;
-            const email = document.getElementById('contact_email').value;
-            const terms = document.getElementById('agree_terms').checked;
-            
-            if (!domain || !authCode || !email || !terms) {
-                e.preventDefault();
-                alert('Заповніть всі обов\'язкові поля та погодьтеся з умовами');
-                return false;
-            }
-            
-            // Показываем индикатор загрузки
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Обробляємо заявку...';
-            submitBtn.disabled = true;
-            
-            // Если форма не прошла валидацию сервера, восстанавливаем кнопку
-            setTimeout(() => {
-                if (submitBtn.disabled) {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                }
-            }, 5000);
+
+        // Auto-lowercase
+        domainInput.addEventListener('blur', function(e) {
+            e.target.value = e.target.value.toLowerCase().trim();
         });
     }
-    
-    // Initialize tooltips
-    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltips.forEach(tooltip => {
-        new bootstrap.Tooltip(tooltip);
-    });
+
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(el => new bootstrap.Tooltip(el));
+    }
 });
 </script>
-<script src="/assets/js/domains-transfer.js"></script>
 
  <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>

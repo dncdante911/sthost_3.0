@@ -1,23 +1,16 @@
 <?php
-// Защита от прямого доступа
+// Захист від прямого доступу
 define('SECURE_ACCESS', true);
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// Конфігурація сторінки
+$page = 'dns';
+$page_title = 'DNS Lookup - StormHosting UA';
+$meta_description = 'DNS lookup сервіс для перевірки DNS записів доменів. Перевіряйте A, AAAA, MX, CNAME, TXT та інші DNS записи безкоштовно.';
+$meta_keywords = 'dns lookup, перевірка dns, dns записи, mx записи, а записи, cname записи';
 
-// остальные переменные
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
-
-// Настройки страницы
-$page_title = t('domains_dns') . ' - ' . t('site_name');
-$meta_description = 'DNS lookup сервіс для перевірки DNS записів доменів. Перевіряйте A, AAAA, MX, CNAME, TXT та інші DNS записи безкоштовно.';
-$meta_keywords = 'dns lookup, перевірка dns, dns записи, mx записи, а записи, cname записи';
-$page_css = 'domains-dns';
-$page_js = 'domains-dns';
-$need_api = true;
 
 // Типы DNS записей
 $dns_record_types = [
@@ -218,23 +211,6 @@ function performDNSLookup($domain, $record_type) {
 }
 
 ?>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор хостингу - StormHosting UA</title>
-    <meta name="description" content="Розрахуйте вартість хостингу під ваші потреби. Віртуальний хостинг, VPS, виділені сервери. Миттєвий розрахунок ціни.">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Main CSS -->
-    <link rel="stylesheet" href="/assets/css/home.css">
-    <!-- Calculator CSS -->
-    <link rel="stylesheet" href="/assets/css/pages/domains2.css">
-     
-     
-</head>
 
 <!-- DNS Hero -->
 <section class="dns-hero py-5">
@@ -612,8 +588,124 @@ function performDNSLookup($domain, $record_type) {
     </div>
 </section>
 
+<style>
+/* Fix text readability on colored backgrounds */
+.dns-type-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.dns-type-card:hover {
+    border-color: var(--premium-primary, #667eea);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+    transform: translateY(-4px);
+}
+
+.dns-type-card .dns-type-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.dns-type-card .dns-type-icon i {
+    font-size: 28px;
+    color: var(--premium-primary, #667eea);
+}
+
+.dns-type-card h4 {
+    color: #1a1a2e;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.dns-type-card p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Issue cards fix */
+.issue-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    border-left: 4px solid #e0e0e0;
+    height: 100%;
+}
+
+.issue-card .issue-icon {
+    margin-bottom: 15px;
+}
+
+.issue-card .issue-icon i {
+    font-size: 36px;
+}
+
+.issue-card h4 {
+    color: #1a1a2e;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.issue-card p {
+    color: #666;
+}
+
+.issue-card ul {
+    color: #666;
+    margin-top: 15px;
+}
+
+/* DNS Results styling */
+.dns-result-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+}
+
+.dns-records-table {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.dns-records-table thead th {
+    background: #f8f9fa;
+    padding: 12px;
+    font-weight: 600;
+    color: #1a1a2e;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.dns-records-table tbody td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+}
+
+.record-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--premium-primary, #667eea);
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+}
+</style>
+
 <script>
-// Константы для скрипта
+// ========================================
+// DNS Lookup Configuration
+// ========================================
 window.dnsConfig = {
     lookupUrl: '?ajax=1',
     csrfToken: '<?php echo generateCSRFToken(); ?>',
@@ -626,22 +718,193 @@ window.dnsConfig = {
     }
 };
 
-// Функции для дополнительных инструментов
+// ========================================
+// DNS Form Handler
+// ========================================
+document.addEventListener('DOMContentLoaded', function() {
+    const dnsForm = document.getElementById('dnsForm');
+    const resultsDiv = document.getElementById('dnsResults');
+    const recordTypeSelect = document.getElementById('recordType');
+
+    // Quick type buttons
+    document.querySelectorAll('.quick-type-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const type = this.dataset.type;
+            recordTypeSelect.value = type;
+
+            // Highlight active button
+            document.querySelectorAll('.quick-type-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Test type buttons
+    document.querySelectorAll('.test-type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const type = this.dataset.type;
+            const domainInput = document.getElementById('dnsDomain');
+            domainInput.value = 'example.com';
+            recordTypeSelect.value = type;
+            dnsForm.dispatchEvent(new Event('submit'));
+        });
+    });
+
+    // Form submission
+    if (dnsForm) {
+        dnsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const domainInput = document.getElementById('dnsDomain');
+            const domain = domainInput.value.trim().toLowerCase();
+            const recordType = recordTypeSelect.value;
+
+            if (!domain) {
+                alert('Введіть домен для перевірки');
+                return;
+            }
+
+            // Validate domain format
+            if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]\.[a-z]{2,}$|^[a-z0-9]\.[a-z]{2,}$/.test(domain)) {
+                alert('Невірний формат домену');
+                return;
+            }
+
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Завантаження...</span>
+                    </div>
+                    <p class="mt-3 text-muted">${window.dnsConfig.translations.checking}</p>
+                </div>
+            `;
+
+            // Perform DNS lookup
+            fetch(window.dnsConfig.lookupUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'dns_lookup',
+                    domain: domain,
+                    record_type: recordType,
+                    csrf_token: window.dnsConfig.csrfToken
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showDNSError(data.error);
+                    return;
+                }
+
+                displayDNSResults(data);
+            })
+            .catch(error => {
+                showDNSError(window.dnsConfig.translations.error);
+                console.error('DNS Error:', error);
+            });
+        });
+    }
+});
+
+// ========================================
+// Display DNS Results
+// ========================================
+function displayDNSResults(data) {
+    const resultsDiv = document.getElementById('dnsResults');
+
+    if (!data.results || data.results.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="bi bi-info-circle me-2"></i>
+                DNS записи типу ${data.record_type} не знайдено для домену ${data.domain}
+            </div>
+        `;
+        return;
+    }
+
+    let tableHTML = `
+        <div class="dns-result-card">
+            <h3 class="mb-4">DNS записи для ${escapeHtml(data.domain)}</h3>
+            <p class="text-muted">Тип запису: <span class="record-type-badge">${escapeHtml(data.record_type)}</span></p>
+
+            <table class="dns-records-table table">
+                <thead>
+                    <tr>
+                        <th>Тип</th>
+                        <th>Хост</th>
+    `;
+
+    // Add headers based on record type
+    const firstRecord = data.results[0];
+    if (firstRecord.ip) tableHTML += '<th>IP адреса</th>';
+    if (firstRecord.ipv6) tableHTML += '<th>IPv6 адреса</th>';
+    if (firstRecord.target) tableHTML += '<th>Ціль</th>';
+    if (firstRecord.pri !== undefined) tableHTML += '<th>Пріоритет</th>';
+    if (firstRecord.txt) tableHTML += '<th>Текст</th>';
+    tableHTML += '<th>TTL</th>';
+    tableHTML += '</tr></thead><tbody>';
+
+    // Add records
+    data.results.forEach(record => {
+        tableHTML += '<tr>';
+        tableHTML += `<td><span class="record-type-badge">${escapeHtml(record.type)}</span></td>`;
+        tableHTML += `<td>${escapeHtml(record.host)}</td>`;
+
+        if (record.ip) tableHTML += `<td><code>${escapeHtml(record.ip)}</code></td>`;
+        if (record.ipv6) tableHTML += `<td><code>${escapeHtml(record.ipv6)}</code></td>`;
+        if (record.target) tableHTML += `<td>${escapeHtml(record.target)}</td>`;
+        if (record.pri !== undefined) tableHTML += `<td>${escapeHtml(record.pri)}</td>`;
+        if (record.txt) tableHTML += `<td><small>${escapeHtml(record.txt)}</small></td>`;
+
+        tableHTML += `<td>${escapeHtml(record.ttl)}</td>`;
+        tableHTML += '</tr>';
+    });
+
+    tableHTML += '</tbody></table>';
+    tableHTML += `<p class="text-muted mt-3"><small><i class="bi bi-info-circle"></i> Знайдено ${data.results.length} записів</small></p>`;
+    tableHTML += '</div>';
+
+    resultsDiv.innerHTML = tableHTML;
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function showDNSError(message) {
+    const resultsDiv = document.getElementById('dnsResults');
+    resultsDiv.innerHTML = `
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Помилка:</strong> ${escapeHtml(message)}
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
+// Additional tools functions
 function runDNSSpeedTest() {
-    alert('DNS Speed Test буде доданий в наступній версії');
+    alert('DNS Speed Test буде доданий в наступній версії.\n\nЦей інструмент дозволить перевірити швидкість відгуку різних DNS серверів.');
 }
 
 function checkDNSPropagation() {
-    alert('DNS Propagation Check буде доданий в наступній версії');
+    alert('DNS Propagation Check буде доданий в наступній версії.\n\nЦей інструмент перевірить поширення DNS по всьому світу.');
 }
 
 function checkDNSSecurity() {
-    alert('DNS Security Check буде доданий в наступній версії');
+    alert('DNS Security Check буде доданий в наступній версії.\n\nЦей інструмент перевірить безпеку ваших DNS налаштувань.');
 }
 
 function exportDNSRecords() {
-    alert('DNS Records Export буде доданий в наступній версії');
+    alert('DNS Records Export буде доданий в наступній версії.\n\nЦей інструмент дозволить експортувати DNS записи у різних форматах.');
 }
 </script>
 
- <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
+<?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
