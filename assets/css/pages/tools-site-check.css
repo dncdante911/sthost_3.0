@@ -455,6 +455,42 @@
     padding: 4rem 0;
 }
 
+.api-feature-box {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.api-feature-box:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-5px);
+}
+
+.api-feature-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+
+.api-documentation {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 3rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.doc-section {
+    margin-bottom: 2rem;
+}
+
 .code-example {
     background: #111827;
     border-radius: var(--border-radius);
@@ -488,6 +524,27 @@
     overflow-x: auto;
 }
 
+.copy-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.copy-btn.copied {
+    background: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
 .api-feature {
     display: flex;
     align-items: center;
@@ -497,6 +554,27 @@
 
 .api-feature i {
     font-size: 1.25rem;
+}
+
+.table-dark {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.table-dark th {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-weight: 600;
+}
+
+.table-dark td {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.table-dark code {
+    background: rgba(74, 58, 255, 0.2);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    color: #A78BFA;
 }
 
 /* Error States */

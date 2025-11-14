@@ -8,6 +8,15 @@ $page_title = 'Перевірка доступності сайту - StormHosti
 $meta_description = 'Безкоштовний інструмент перевірки доступності сайту. Перевірте статус, час відповіді, HTTP коди з різних локацій.';
 $meta_keywords = 'перевірка сайту, site checker, uptime monitor, доступність сайту, ping сайту';
 
+// Додаткові CSS та JS файли для цієї сторінки
+$additional_css = [
+    '/assets/css/pages/tools-site-check.css'
+];
+
+$additional_js = [
+    '/assets/js/tools-site-check.js'
+];
+
 // Підключення конфігурації та БД
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
@@ -15,9 +24,6 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 // Підключення header
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 ?>
-
-<!-- Підключення CSS для сторінки -->
-<link rel="stylesheet" href="/assets/css/pages/tools-site-check.css">
 
 <!-- Site Check Hero -->
 <section class="site-check-hero">
@@ -193,58 +199,273 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 </section>
 
 <!-- API Section -->
-<section class="api-section">
+<section class="api-section py-5">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h2 class="display-5 fw-bold mb-4">API для розробників</h2>
-                <p class="lead mb-4">
-                    Інтегруйте перевірку доступності у ваші додатки через наш REST API
-                </p>
-                
-                <div class="api-features">
-                    <div class="api-feature">
-                        <i class="bi bi-check-circle text-success"></i>
-                        <span>RESTful API з JSON відповідями</span>
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold text-white mb-3">API для розробників</h2>
+            <p class="lead text-white-50">
+                Інтегруйте перевірку доступності у ваші додатки через наш REST API
+            </p>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="api-feature-box text-center">
+                    <div class="api-feature-icon">
+                        <i class="bi bi-code-slash"></i>
                     </div>
-                    <div class="api-feature">
-                        <i class="bi bi-check-circle text-success"></i>
-                        <span>Автентифікація через API ключі</span>
-                    </div>
-                    <div class="api-feature">
-                        <i class="bi bi-check-circle text-success"></i>
-                        <span>Rate limit: 1000 запитів/годину</span>
-                    </div>
-                    <div class="api-feature">
-                        <i class="bi bi-check-circle text-success"></i>
-                        <span>Webhook інтеграція</span>
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <a href="/api/docs" class="btn btn-primary">
-                        <i class="bi bi-book me-2"></i>Документація API
-                    </a>
+                    <h5 class="text-white">RESTful API</h5>
+                    <p class="text-white-50 small">JSON відповіді</p>
                 </div>
             </div>
-            
-            <div class="col-lg-6">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="api-feature-box text-center">
+                    <div class="api-feature-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h5 class="text-white">Автентифікація</h5>
+                    <p class="text-white-50 small">API ключі</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="api-feature-box text-center">
+                    <div class="api-feature-icon">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                    <h5 class="text-white">Rate Limit</h5>
+                    <p class="text-white-50 small">1000 запитів/год</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="api-feature-box text-center">
+                    <div class="api-feature-icon">
+                        <i class="bi bi-globe"></i>
+                    </div>
+                    <h5 class="text-white">6 Локацій</h5>
+                    <p class="text-white-50 small">По всьому світу</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Documentation -->
+        <div class="api-documentation">
+            <!-- Endpoint Info -->
+            <div class="doc-section mb-4">
+                <h4 class="text-white mb-3"><i class="bi bi-link-45deg me-2"></i>Endpoint</h4>
                 <div class="code-example">
                     <div class="code-header">
-                        <span class="code-lang">curl</span>
-                        <button class="btn btn-sm btn-outline-light" onclick="copyCode()">
+                        <span class="code-lang">POST</span>
+                    </div>
+                    <pre><code>https://api.stormhosting.ua/v1/site-check</code></pre>
+                </div>
+            </div>
+
+            <!-- Authentication -->
+            <div class="doc-section mb-4">
+                <h4 class="text-white mb-3"><i class="bi bi-key me-2"></i>Автентифікація</h4>
+                <p class="text-white-50">Використовуйте Bearer токен в заголовку Authorization:</p>
+                <div class="code-example">
+                    <div class="code-header">
+                        <span class="code-lang">Headers</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="auth">
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </div>
-                    <pre><code>curl -X POST https://api.stormhosting.ua/v1/site-check \
+                    <pre id="code-auth"><code>Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json</code></pre>
+                </div>
+            </div>
+
+            <!-- Request Example -->
+            <div class="doc-section mb-4">
+                <h4 class="text-white mb-3"><i class="bi bi-send me-2"></i>Приклад запиту</h4>
+                <div class="row">
+                    <div class="col-lg-6 mb-3">
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span class="code-lang">cURL</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="curl">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                            <pre id="code-curl"><code>curl -X POST https://api.stormhosting.ua/v1/site-check \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "url": "https://example.com",
     "locations": ["kyiv", "frankfurt"],
-    "check_ssl": true
+    "check_ssl": true,
+    "follow_redirects": true
   }'</code></pre>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-3">
+                        <div class="code-example">
+                            <div class="code-header">
+                                <span class="code-lang">JavaScript</span>
+                                <button class="btn btn-sm btn-outline-light copy-btn" data-code="js">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                            <pre id="code-js"><code>const response = await fetch(
+  'https://api.stormhosting.ua/v1/site-check',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_API_KEY',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      url: 'https://example.com',
+      locations: ['kyiv', 'frankfurt'],
+      check_ssl: true
+    })
+  }
+);
+const data = await response.json();</code></pre>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Request Parameters -->
+            <div class="doc-section mb-4">
+                <h4 class="text-white mb-3"><i class="bi bi-list-ul me-2"></i>Параметри запиту</h4>
+                <div class="table-responsive">
+                    <table class="table table-dark table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Параметр</th>
+                                <th>Тип</th>
+                                <th>Обов'язковий</th>
+                                <th>Опис</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>url</code></td>
+                                <td>string</td>
+                                <td><span class="badge bg-danger">Так</span></td>
+                                <td>URL сайту для перевірки (включаючи протокол)</td>
+                            </tr>
+                            <tr>
+                                <td><code>locations</code></td>
+                                <td>array</td>
+                                <td><span class="badge bg-warning">Ні</span></td>
+                                <td>Масив кодів локацій: kyiv, frankfurt, london, nyc, singapore, tokyo</td>
+                            </tr>
+                            <tr>
+                                <td><code>check_ssl</code></td>
+                                <td>boolean</td>
+                                <td><span class="badge bg-warning">Ні</span></td>
+                                <td>Перевіряти SSL сертифікат (за замовчуванням: true)</td>
+                            </tr>
+                            <tr>
+                                <td><code>follow_redirects</code></td>
+                                <td>boolean</td>
+                                <td><span class="badge bg-warning">Ні</span></td>
+                                <td>Слідувати за редіректами (за замовчуванням: true)</td>
+                            </tr>
+                            <tr>
+                                <td><code>timeout</code></td>
+                                <td>integer</td>
+                                <td><span class="badge bg-warning">Ні</span></td>
+                                <td>Таймаут в секундах (1-30, за замовчуванням: 10)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Response Example -->
+            <div class="doc-section mb-4">
+                <h4 class="text-white mb-3"><i class="bi bi-check2-circle me-2"></i>Приклад відповіді</h4>
+                <div class="code-example">
+                    <div class="code-header">
+                        <span class="code-lang">JSON Response</span>
+                        <button class="btn btn-sm btn-outline-light copy-btn" data-code="response">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <pre id="code-response"><code>{
+  "success": true,
+  "url": "https://example.com",
+  "timestamp": "2024-11-14T10:30:00Z",
+  "results": [
+    {
+      "location": "kyiv",
+      "status": "up",
+      "http_code": 200,
+      "response_time": 145,
+      "dns_time": 12,
+      "connect_time": 45,
+      "total_time": 202,
+      "ssl": {
+        "valid": true,
+        "issuer": "Let's Encrypt",
+        "expires": "2025-02-14",
+        "days_remaining": 92
+      }
+    },
+    {
+      "location": "frankfurt",
+      "status": "up",
+      "http_code": 200,
+      "response_time": 89,
+      "dns_time": 8,
+      "connect_time": 23,
+      "total_time": 120,
+      "ssl": {
+        "valid": true,
+        "issuer": "Let's Encrypt",
+        "expires": "2025-02-14",
+        "days_remaining": 92
+      }
+    }
+  ]
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- Error Codes -->
+            <div class="doc-section mb-4">
+                <h4 class="text-white mb-3"><i class="bi bi-exclamation-triangle me-2"></i>Коди помилок</h4>
+                <div class="table-responsive">
+                    <table class="table table-dark table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Код</th>
+                                <th>Опис</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>400</code></td>
+                                <td>Невірний запит (відсутні обов'язкові параметри)</td>
+                            </tr>
+                            <tr>
+                                <td><code>401</code></td>
+                                <td>Невірний або відсутній API ключ</td>
+                            </tr>
+                            <tr>
+                                <td><code>429</code></td>
+                                <td>Перевищено ліміт запитів</td>
+                            </tr>
+                            <tr>
+                                <td><code>500</code></td>
+                                <td>Внутрішня помилка сервера</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Get API Key -->
+            <div class="text-center mt-5">
+                <a href="/pages/contacts.php?subject=api-key" class="btn btn-primary btn-lg">
+                    <i class="bi bi-key me-2"></i>Отримати API ключ
+                </a>
+                <p class="text-white-50 mt-3">Для клієнтів StormHosting API ключ безкоштовний</p>
             </div>
         </div>
     </div>
@@ -265,7 +486,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     </div>
                     <h5>WHOIS lookup</h5>
                     <p class="text-muted">Інформація про власника домену</p>
-                    <a href="/domains/whois" class="btn btn-outline-primary btn-sm">
+                    <a href="/pages/domains/whois.php" class="btn btn-outline-primary btn-sm">
                         Перевірити
                     </a>
                 </div>
@@ -278,7 +499,7 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                     </div>
                     <h5>DNS lookup</h5>
                     <p class="text-muted">Перевірка DNS записів</p>
-                    <a href="/domains/dns" class="btn btn-outline-primary btn-sm">
+                    <a href="/pages/domains/dns.php" class="btn btn-outline-primary btn-sm">
                         Перевірити
                     </a>
                 </div>
@@ -315,7 +536,5 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 
 <!-- Chart.js для графіків -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Підключення JS для сторінки -->
-<script src="/assets/js/tools-site-check.js"></script>
 
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
