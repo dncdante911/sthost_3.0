@@ -5,7 +5,15 @@
  */
 
 // Подключение к БД
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних.');
+}
 
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
 $news_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -17,49 +25,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'create':
             case 'update':
                 $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-                $title_ua = $conn->real_escape_string($_POST['title_ua']);
-                $content_ua = $conn->real_escape_string($_POST['content_ua']);
-                $image = isset($_POST['image']) ? $conn->real_escape_string($_POST['image']) : '';
+                $title_ua = trim($_POST['title_ua']);
+                $content_ua = trim($_POST['content_ua']);
+                $image = isset($_POST['image']) ? trim($_POST['image']) : '';
                 $is_featured = isset($_POST['is_featured']) ? 1 : 0;
                 $is_published = isset($_POST['is_published']) ? 1 : 0;
 
                 if ($_POST['action'] === 'create') {
-                    $sql = "INSERT INTO news (title_ua, content_ua, image, is_featured, is_published, created_at)
-                            VALUES ('$title_ua', '$content_ua', '$image', $is_featured, $is_published, NOW())";
+                    $stmt = $pdo->prepare("INSERT INTO news (title_ua, content_ua, image, is_featured, is_published, created_at)
+                            VALUES (?, ?, ?, ?, ?, NOW())");
 
-                    if ($conn->query($sql)) {
+                    if ($stmt->execute([$title_ua, $content_ua, $image, $is_featured, $is_published])) {
                         $success_message = "Новину успішно створено!";
                         $action = 'list';
                     } else {
-                        $error_message = "Помилка створення новини: " . $conn->error;
+                        $error_message = "Помилка створення новини";
                     }
                 } else {
-                    $sql = "UPDATE news SET
-                            title_ua = '$title_ua',
-                            content_ua = '$content_ua',
-                            image = '$image',
-                            is_featured = $is_featured,
-                            is_published = $is_published,
+                    $stmt = $pdo->prepare("UPDATE news SET
+                            title_ua = ?,
+                            content_ua = ?,
+                            image = ?,
+                            is_featured = ?,
+                            is_published = ?,
                             updated_at = NOW()
-                            WHERE id = $id";
+                            WHERE id = ?");
 
-                    if ($conn->query($sql)) {
+                    if ($stmt->execute([$title_ua, $content_ua, $image, $is_featured, $is_published, $id])) {
                         $success_message = "Новину успішно оновлено!";
                         $action = 'list';
                     } else {
-                        $error_message = "Помилка оновлення новини: " . $conn->error;
+                        $error_message = "Помилка оновлення новини";
                     }
                 }
                 break;
 
             case 'delete':
                 $id = (int)$_POST['id'];
-                $sql = "DELETE FROM news WHERE id = $id";
+                $stmt = $pdo->prepare("DELETE FROM news WHERE id = ?");
 
-                if ($conn->query($sql)) {
+                if ($stmt->execute([$id])) {
                     $success_message = "Новину успішно видалено!";
                 } else {
-                    $error_message = "Помилка видалення новини: " . $conn->error;
+                    $error_message = "Помилка видалення новини";
                 }
                 $action = 'list';
                 break;
@@ -109,9 +117,9 @@ if (isset($error_message)) {
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM news ORDER BY created_at DESC");
-                    if ($result && $result->num_rows > 0) {
-                        while ($news = $result->fetch_assoc()) {
+                    $result = $pdo->query("SELECT * FROM news ORDER BY created_at DESC");
+                    if ($result && $result->rowCount() > 0) {
+                        while ($news = $result->fetch(PDO::FETCH_ASSOC)) {
                             echo '<tr>';
                             echo '<td>' . $news['id'] . '</td>';
                             echo '<td><strong>' . htmlspecialchars($news['title_ua']) . '</strong></td>';
@@ -187,9 +195,12 @@ $news_data = [
 ];
 
 if ($action === 'edit' && $news_id > 0) {
-    $result = $conn->query("SELECT * FROM news WHERE id = $news_id");
-    if ($result && $result->num_rows > 0) {
-        $news_data = $result->fetch_assoc();
+    $stmt = $pdo->prepare("SELECT * FROM news WHERE id = ?");
+    $stmt->execute([$news_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($result) {
+        $news_data = $result;
     } else {
         echo '<div class="alert alert-danger">Новину не знайдено!</div>';
         $action = 'list';
@@ -292,7 +303,3 @@ if (document.getElementById('image').value) {
 <?php endif; ?>
 
 <?php endif; ?>
-
-<?php
-$conn->close();
-?>

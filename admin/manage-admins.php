@@ -15,12 +15,21 @@ session_start();
 // 2. Пользователь авторизован как admin
 $allow_access = false;
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних. Зверніться до адміністратора.');
+}
+
 // Проверяем есть ли хоть один админ
-$check_admins = $conn->query("SELECT COUNT(*) as count FROM admin_users WHERE role = 'admin'");
+$check_admins = $pdo->query("SELECT COUNT(*) as count FROM admin_users WHERE role = 'admin'");
 if ($check_admins) {
-    $admin_count = $check_admins->fetch_assoc()['count'];
+    $row = $check_admins->fetch(PDO::FETCH_ASSOC);
+    $admin_count = $row['count'];
 
     if ($admin_count == 0) {
         // Нет админов - разрешаем доступ (первый запуск)
@@ -80,34 +89,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
         $error = 'Невірний формат email';
     } else {
         // Проверяем существует ли уже такой username
-        $check_stmt = $conn->prepare("SELECT id FROM admin_users WHERE username = ?");
-        $check_stmt->bind_param('s', $username);
-        $check_stmt->execute();
-        $result = $check_stmt->get_result();
+        $check_stmt = $pdo->prepare("SELECT id FROM admin_users WHERE username = ?");
+        $check_stmt->execute([$username]);
 
-        if ($result->num_rows > 0) {
+        if ($check_stmt->rowCount() > 0) {
             $error = 'Користувач з таким логіном вже існує';
         } else {
             // Создаём администратора
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
             $created_by = isset($_SESSION['admin_id']) ? $_SESSION['admin_id'] : null;
 
-            $stmt = $conn->prepare("INSERT INTO admin_users (username, password, email, role, created_by) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param('ssssi', $username, $password_hash, $email, $role, $created_by);
+            $stmt = $pdo->prepare("INSERT INTO admin_users (username, password, email, role) VALUES (?, ?, ?, ?)");
 
-            if ($stmt->execute()) {
+            if ($stmt->execute([$username, $password_hash, $email, $role])) {
                 $message = "✅ Адміністратор <strong>$username</strong> успішно створений!";
 
                 // Очищаем форму
                 $_POST = array();
             } else {
-                $error = 'Помилка створення адміністратора: ' . $stmt->error;
+                $error = 'Помилка створення адміністратора';
             }
-
-            $stmt->close();
         }
-
-        $check_stmt->close();
     }
 }
 
@@ -116,18 +118,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_active'])) {
     $admin_id = (int)$_POST['admin_id'];
     $new_status = (int)$_POST['new_status'];
 
-    $stmt = $conn->prepare("UPDATE admin_users SET is_active = ? WHERE id = ?");
-    $stmt->bind_param('ii', $new_status, $admin_id);
+    $stmt = $pdo->prepare("UPDATE admin_users SET is_active = ? WHERE id = ?");
 
-    if ($stmt->execute()) {
+    if ($stmt->execute([$new_status, $admin_id])) {
         $message = $new_status ? '✅ Адміністратор активований' : '⚠️ Адміністратор деактивований';
     }
-
-    $stmt->close();
 }
 
 // Получаем список всех админов
-$admins = $conn->query("SELECT * FROM admin_users ORDER BY created_at DESC");
+$admins = $pdo->query("SELECT * FROM admin_users ORDER BY created_at DESC");
 ?>
 <!DOCTYPE html>
 <html lang="uk">
@@ -232,8 +231,8 @@ $admins = $conn->query("SELECT * FROM admin_users ORDER BY created_at DESC");
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($admins && $admins->num_rows > 0): ?>
-                            <?php while ($admin = $admins->fetch_assoc()): ?>
+                        <?php if ($admins && $admins->rowCount() > 0): ?>
+                            <?php while ($admin = $admins->fetch(PDO::FETCH_ASSOC)): ?>
                             <tr>
                                 <td><?php echo $admin['id']; ?></td>
                                 <td><strong><?php echo htmlspecialchars($admin['username']); ?></strong></td>
@@ -307,6 +306,3 @@ $admins = $conn->query("SELECT * FROM admin_users ORDER BY created_at DESC");
 
 </body>
 </html>
-<?php
-$conn->close();
-?>

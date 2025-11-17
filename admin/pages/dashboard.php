@@ -5,7 +5,15 @@
  */
 
 // Подключение к БД
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних.');
+}
 
 // Получаем статистику
 $stats = [
@@ -18,33 +26,38 @@ $stats = [
 
 try {
     // Количество пользователей
-    $result = $conn->query("SELECT COUNT(*) as count FROM users");
+    $result = $pdo->query("SELECT COUNT(*) as count FROM users");
     if ($result) {
-        $stats['users'] = $result->fetch_assoc()['count'];
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $stats['users'] = $row['count'];
     }
 
     // Количество новостей
-    $result = $conn->query("SELECT COUNT(*) as count FROM news");
+    $result = $pdo->query("SELECT COUNT(*) as count FROM news");
     if ($result) {
-        $stats['news'] = $result->fetch_assoc()['count'];
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $stats['news'] = $row['count'];
     }
 
     // Количество доменных зон
-    $result = $conn->query("SELECT COUNT(*) as count FROM domain_zones");
+    $result = $pdo->query("SELECT COUNT(*) as count FROM domain_zones");
     if ($result) {
-        $stats['domains'] = $result->fetch_assoc()['count'];
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $stats['domains'] = $row['count'];
     }
 
     // Количество планов хостинга
-    $result = $conn->query("SELECT COUNT(*) as count FROM hosting_plans");
+    $result = $pdo->query("SELECT COUNT(*) as count FROM hosting_plans");
     if ($result) {
-        $stats['hosting_plans'] = $result->fetch_assoc()['count'];
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $stats['hosting_plans'] = $row['count'];
     }
 
     // Количество VPS планов
-    $result = $conn->query("SELECT COUNT(*) as count FROM vps_plans");
+    $result = $pdo->query("SELECT COUNT(*) as count FROM vps_plans");
     if ($result) {
-        $stats['vps_plans'] = $result->fetch_assoc()['count'];
+        $row = $result->fetch(PDO::FETCH_ASSOC);
+        $stats['vps_plans'] = $row['count'];
     }
 } catch (Exception $e) {
     error_log('Dashboard stats error: ' . $e->getMessage());
@@ -126,10 +139,10 @@ try {
             <div class="card-body">
                 <?php
                 try {
-                    $result = $conn->query("SELECT id, title_ua, created_at, is_published FROM news ORDER BY created_at DESC LIMIT 5");
-                    if ($result && $result->num_rows > 0) {
+                    $result = $pdo->query("SELECT id, title_ua, created_at, is_published FROM news ORDER BY created_at DESC LIMIT 5");
+                    if ($result && $result->rowCount() > 0) {
                         echo '<div class="list-group list-group-flush">';
-                        while ($news = $result->fetch_assoc()) {
+                        while ($news = $result->fetch(PDO::FETCH_ASSOC)) {
                             $badge = $news['is_published'] ? '<span class="badge bg-success">Опубліковано</span>' : '<span class="badge bg-warning">Чернетка</span>';
                             $date = date('d.m.Y H:i', strtotime($news['created_at']));
                             echo '<div class="list-group-item d-flex justify-content-between align-items-start">';
@@ -160,10 +173,10 @@ try {
             <div class="card-body">
                 <?php
                 try {
-                    $result = $conn->query("SELECT id, name, email, created_at FROM users ORDER BY created_at DESC LIMIT 5");
-                    if ($result && $result->num_rows > 0) {
+                    $result = $pdo->query("SELECT id, name, email, created_at FROM users ORDER BY created_at DESC LIMIT 5");
+                    if ($result && $result->rowCount() > 0) {
                         echo '<div class="list-group list-group-flush">';
-                        while ($user = $result->fetch_assoc()) {
+                        while ($user = $result->fetch(PDO::FETCH_ASSOC)) {
                             $date = date('d.m.Y H:i', strtotime($user['created_at']));
                             echo '<div class="list-group-item">';
                             echo '<div class="d-flex w-100 justify-content-between">';
@@ -185,7 +198,3 @@ try {
         </div>
     </div>
 </div>
-
-<?php
-$conn->close();
-?>

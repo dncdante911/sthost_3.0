@@ -4,7 +4,15 @@
  * Файл: /admin/pages/hosting.php
  */
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних.');
+}
 ?>
 
 <div class="card">
@@ -32,9 +40,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM hosting_plans ORDER BY price_monthly ASC");
-                    if ($result && $result->num_rows > 0) {
-                        while ($plan = $result->fetch_assoc()) {
+                    $result = $pdo->query("SELECT * FROM hosting_plans ORDER BY price_monthly ASC");
+                    if ($result && $result->rowCount() > 0) {
+                        while ($plan = $result->fetch(PDO::FETCH_ASSOC)) {
                             echo '<tr>';
                             echo '<td>' . $plan['id'] . '</td>';
                             echo '<td><strong>' . htmlspecialchars($plan['name_ua']) . '</strong></td>';
@@ -71,5 +79,3 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
     <i class="bi bi-info-circle me-2"></i>
     <strong>Управління тарифними планами:</strong> Тут ви можете створювати та редагувати тарифи хостингу для ваших клієнтів.
 </div>
-
-<?php $conn->close(); ?>
