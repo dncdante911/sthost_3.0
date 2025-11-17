@@ -15,11 +15,19 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
     exit;
 }
 
-// Подключение к БД
+// Подключение к конфигурации и БД
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 
 $error_message = '';
 $success_message = '';
+
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних. Зверніться до адміністратора.');
+}
 
 // Обработка формы входа
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
@@ -29,80 +37,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     if (empty($username) || empty($password)) {
         $error_message = 'Будь ласка, заповніть всі поля';
     } else {
-        // Проверяем пользователя в БД
-        $stmt = $conn->prepare("SELECT id, username, password, role, is_active FROM admin_users WHERE username = ?");
-        $stmt->bind_param('s', $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Проверяем существует ли таблица admin_users
+        $table_check = $pdo->query("SHOW TABLES LIKE 'admin_users'");
 
-        if ($result->num_rows === 1) {
-            $admin = $result->fetch_assoc();
+        if ($table_check && $table_check->rowCount() > 0) {
+            // Проверяем пользователя в БД
+            $stmt = $pdo->prepare("SELECT id, username, password, role, is_active FROM admin_users WHERE username = ?");
 
-            // Проверяем активность аккаунта
-            if (!$admin['is_active']) {
-                $error_message = 'Ваш обліковий запис деактивовано';
-            } else {
-                // Проверяем пароль
-                if (password_verify($password, $admin['password'])) {
-                    // Успешная авторизация
-                    $_SESSION['admin_logged_in'] = true;
-                    $_SESSION['admin_id'] = $admin['id'];
-                    $_SESSION['admin_username'] = $admin['username'];
-                    $_SESSION['admin_role'] = $admin['role'];
+            if ($stmt) {
+                $stmt->execute([$username]);
+                $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                    // Обновляем время последнего входа
-                    $update_stmt = $conn->prepare("UPDATE admin_users SET last_login = NOW() WHERE id = ?");
-                    $update_stmt->bind_param('i', $admin['id']);
-                    $update_stmt->execute();
-                    $update_stmt->close();
+                if ($admin) {
+                    // Проверяем активность аккаунта
+                    if (!$admin['is_active']) {
+                        $error_message = 'Ваш обліковий запис деактивовано';
+                    } else {
+                        // Проверяем пароль
+                        if (password_verify($password, $admin['password'])) {
+                            // Успешная авторизация
+                            $_SESSION['admin_logged_in'] = true;
+                            $_SESSION['admin_id'] = $admin['id'];
+                            $_SESSION['admin_username'] = $admin['username'];
+                            $_SESSION['admin_role'] = $admin['role'];
 
-                    // Перенаправляем в админку
-                    header('Location: /admin/index.php');
-                    exit;
+                            // Обновляем время последнего входа
+                            $update_stmt = $pdo->prepare("UPDATE admin_users SET last_login = NOW() WHERE id = ?");
+                            if ($update_stmt) {
+                                $update_stmt->execute([$admin['id']]);
+                            }
+
+                            // Перенаправляем в админку
+                            header('Location: /admin/index.php');
+                            exit;
+                        } else {
+                            $error_message = 'Невірний логін або пароль';
+                        }
+                    }
                 } else {
                     $error_message = 'Невірний логін або пароль';
                 }
+            } else {
+                $error_message = 'Помилка запиту до бази даних';
             }
         } else {
-            $error_message = 'Невірний логін або пароль';
+            $error_message = 'Таблиця адміністраторів не знайдена. Виконайте SQL міграцію: /table/migration_admin_users.sql';
         }
-
-        $stmt->close();
     }
 }
 
-// Создание таблицы admin_users если её нет
-$create_table_sql = "
-CREATE TABLE IF NOT EXISTS `admin_users` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `username` VARCHAR(100) NOT NULL UNIQUE,
-  `password` VARCHAR(255) NOT NULL,
-  `email` VARCHAR(255) NOT NULL,
-  `role` ENUM('admin', 'moderator', 'publisher') NOT NULL DEFAULT 'publisher',
-  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `last_login` TIMESTAMP NULL,
-  KEY `idx_username` (`username`),
-  KEY `idx_role` (`role`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-";
+// Создание таблицы admin_users если её нет (только при первом запуске)
+$table_check = $pdo->query("SHOW TABLES LIKE 'admin_users'");
 
-$conn->query($create_table_sql);
+if (!$table_check || $table_check->rowCount() === 0) {
+    // Таблицы нет - создаём
+    $create_table_sql = "
+    CREATE TABLE IF NOT EXISTS `admin_users` (
+      `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      `username` VARCHAR(100) NOT NULL UNIQUE,
+      `password` VARCHAR(255) NOT NULL,
+      `email` VARCHAR(255) NOT NULL,
+      `role` ENUM('admin', 'moderator', 'publisher') NOT NULL DEFAULT 'publisher',
+      `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      `last_login` TIMESTAMP NULL,
+      KEY `idx_username` (`username`),
+      KEY `idx_role` (`role`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
-// Проверяем есть ли хоть один админ, если нет - создаём дефолтного
-$check_admin = $conn->query("SELECT COUNT(*) as count FROM admin_users WHERE role = 'admin'");
-$admin_exists = $check_admin->fetch_assoc()['count'] > 0;
+    if ($pdo->exec($create_table_sql) !== false) {
+        // Создаём дефолтного админа
+        $default_password = password_hash('admin123', PASSWORD_DEFAULT);
+        $insert_stmt = $pdo->prepare("INSERT INTO admin_users (username, password, email, role) VALUES (?, ?, ?, ?)");
 
-if (!$admin_exists) {
-    // Создаём дефолтного админа
-    // Логин: admin, Пароль: admin123 (ОБЯЗАТЕЛЬНО ИЗМЕНИТЬ ПОСЛЕ ВХОДА!)
-    $default_password = password_hash('admin123', PASSWORD_DEFAULT);
-    $conn->query("INSERT INTO admin_users (username, password, email, role) VALUES ('admin', '$default_password', 'admin@stormhosting.ua', 'admin')");
+        if ($insert_stmt) {
+            $default_username = 'admin';
+            $default_email = 'admin@stormhosting.ua';
+            $default_role = 'admin';
 
-    $success_message = 'Створено обліковий запис за замовчуванням. Логін: <strong>admin</strong>, Пароль: <strong>admin123</strong><br><strong class="text-danger">ОБОВ\'ЯЗКОВО ЗМІНІТЬ ПАРОЛЬ ПІСЛЯ ВХОДУ!</strong>';
+            if ($insert_stmt->execute([$default_username, $default_password, $default_email, $default_role])) {
+                $success_message = 'Створено обліковий запис за замовчуванням.<br>Логін: <strong>admin</strong><br>Пароль: <strong>admin123</strong><br><strong class="text-danger">ОБОВ\'ЯЗКОВО ЗМІНІТЬ ПАРОЛЬ ПІСЛЯ ВХОДУ!</strong>';
+            }
+        }
+    }
+} else {
+    // Таблица существует - проверяем есть ли админы
+    $check_admin = $pdo->query("SELECT COUNT(*) as count FROM admin_users WHERE role = 'admin'");
+
+    if ($check_admin) {
+        $row = $check_admin->fetch(PDO::FETCH_ASSOC);
+
+        if ($row && $row['count'] == 0) {
+            // Админов нет - создаём дефолтного
+            $default_password = password_hash('admin123', PASSWORD_DEFAULT);
+            $insert_stmt = $pdo->prepare("INSERT INTO admin_users (username, password, email, role) VALUES (?, ?, ?, ?)");
+
+            if ($insert_stmt) {
+                $default_username = 'admin';
+                $default_email = 'admin@stormhosting.ua';
+                $default_role = 'admin';
+
+                if ($insert_stmt->execute([$default_username, $default_password, $default_email, $default_role])) {
+                    $success_message = 'Створено обліковий запис за замовчуванням.<br>Логін: <strong>admin</strong><br>Пароль: <strong>admin123</strong><br><strong class="text-danger">ОБОВ\'ЯЗКОВО ЗМІНІТЬ ПАРОЛЬ ПІСЛЯ ВХОДУ!</strong>';
+                }
+            }
+        }
+    }
 }
-
-$conn->close();
 ?>
 <!DOCTYPE html>
 <html lang="uk">
