@@ -7,7 +7,11 @@
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
+// Определяем константу для работы с includes
+define('SECURE_ACCESS', true);
+
 // Подключение к БД
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 
 // Получаем параметры
@@ -20,8 +24,11 @@ if ($limit > 100) {
 }
 
 try {
+    // Получаем PDO подключение
+    $pdo = DatabaseConnection::getSiteConnection();
+
     // Подготавливаем запрос
-    $stmt = $conn->prepare("
+    $stmt = $pdo->prepare("
         SELECT
             id,
             title_ua as title,
@@ -32,15 +39,15 @@ try {
         FROM news
         WHERE is_published = 1
         ORDER BY is_featured DESC, created_at DESC
-        LIMIT ? OFFSET ?
+        LIMIT :limit OFFSET :offset
     ");
 
-    $stmt->bind_param('ii', $limit, $offset);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
-    $result = $stmt->get_result();
 
     $news = [];
-    while ($row = $result->fetch_assoc()) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $news[] = [
             'id' => $row['id'],
             'title' => $row['title'],
@@ -52,8 +59,9 @@ try {
     }
 
     // Получаем общее количество новостей
-    $countResult = $conn->query("SELECT COUNT(*) as total FROM news WHERE is_published = 1");
-    $total = $countResult->fetch_assoc()['total'];
+    $countStmt = $pdo->query("SELECT COUNT(*) as total FROM news WHERE is_published = 1");
+    $countRow = $countStmt->fetch(PDO::FETCH_ASSOC);
+    $total = $countRow['total'];
 
     echo json_encode([
         'success' => true,
@@ -63,7 +71,6 @@ try {
         'offset' => $offset
     ], JSON_UNESCAPED_UNICODE);
 
-    $stmt->close();
 } catch (Exception $e) {
     error_log('News List API Error: ' . $e->getMessage());
 
@@ -73,5 +80,3 @@ try {
         'news' => []
     ], JSON_UNESCAPED_UNICODE);
 }
-
-$conn->close();
