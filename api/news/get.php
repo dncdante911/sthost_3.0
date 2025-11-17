@@ -7,13 +7,12 @@
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 
-// Подключение к БД
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+// Определяем константу для работы с includes
+define('SECURE_ACCESS', true);
 
-// Функция экранирования вывода
-function escapeOutput($text) {
-    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-}
+// Подключение к БД
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 
 // Получаем ID новости
 $newsId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -27,8 +26,11 @@ if ($newsId <= 0) {
 }
 
 try {
+    // Получаем PDO подключение
+    $pdo = DatabaseConnection::getSiteConnection();
+
     // Подготавливаем запрос
-    $stmt = $conn->prepare("
+    $stmt = $pdo->prepare("
         SELECT
             id,
             title_ua as title,
@@ -40,13 +42,10 @@ try {
         WHERE id = ? AND is_published = 1
     ");
 
-    $stmt->bind_param('i', $newsId);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt->execute([$newsId]);
+    $news = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($result->num_rows > 0) {
-        $news = $result->fetch_assoc();
-
+    if ($news) {
         echo json_encode([
             'success' => true,
             'news' => [
@@ -65,7 +64,6 @@ try {
         ], JSON_UNESCAPED_UNICODE);
     }
 
-    $stmt->close();
 } catch (Exception $e) {
     error_log('News API Error: ' . $e->getMessage());
 
@@ -74,5 +72,3 @@ try {
         'message' => 'Помилка завантаження новини'
     ], JSON_UNESCAPED_UNICODE);
 }
-
-$conn->close();
