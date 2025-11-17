@@ -4,14 +4,24 @@
  * Файл: /admin/index.php
  */
 
-// Проверка авторизации (заглушка - в будущем добавить реальную авторизацию)
+// Запуск сессии
 session_start();
 
-// TODO: Добавить проверку прав админа
-// if (!isset($_SESSION['admin_id']) || $_SESSION['role'] !== 'admin') {
-//     header('Location: /admin/login.php');
-//     exit;
-// }
+// Проверка авторизации
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header('Location: /admin/login.php');
+    exit;
+}
+
+// Проверка прав доступа (роль должна быть admin, moderator или publisher)
+$allowed_roles = ['admin', 'moderator', 'publisher'];
+if (!isset($_SESSION['admin_role']) || !in_array($_SESSION['admin_role'], $allowed_roles)) {
+    header('Location: /admin/login.php');
+    exit;
+}
+
+// Определяем константу для защиты от прямого доступа
+define('SECURE_ACCESS', true);
 
 $page_title = 'Адмін-панель - StormHosting UA';
 $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
@@ -300,10 +310,13 @@ $current_page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-person-circle me-1"></i>
-                    Адміністратор
+                    <?php echo htmlspecialchars($_SESSION['admin_username']); ?>
+                    <span class="badge bg-<?php echo $_SESSION['admin_role'] === 'admin' ? 'danger' : ($_SESSION['admin_role'] === 'moderator' ? 'warning' : 'info'); ?> ms-1">
+                        <?php echo ucfirst($_SESSION['admin_role']); ?>
+                    </span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/admin/profile.php"><i class="bi bi-person me-2"></i>Профіль</a></li>
+                    <li><h6 class="dropdown-header">Роль: <?php echo ucfirst($_SESSION['admin_role']); ?></h6></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="/admin/logout.php"><i class="bi bi-box-arrow-right me-2"></i>Вихід</a></li>
                 </ul>

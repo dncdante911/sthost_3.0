@@ -246,7 +246,7 @@ $current_lang = $current_lang ?? 'ua';
         <div class="domains-grid">
             <?php if (isset($popular_domains) && is_array($popular_domains)): ?>
                 <?php foreach($popular_domains as $domain): ?>
-                    <div class="domain-card">
+                    <div class="domain-card" data-href="/pages/domains/register.php">
                         <div class="domain-zone"><?php echo escapeOutput($domain['zone']); ?></div>
                         <div class="domain-price"><?php echo formatPrice($domain['price_registration']); ?>/рік</div>
                         <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
@@ -301,11 +301,11 @@ $current_lang = $current_lang ?? 'ua';
             <?php if (isset($popular_hosting) && is_array($popular_hosting)): ?>
                 <?php foreach($popular_hosting as $plan): ?>
                     <div class="col-lg-4 col-md-6">
-                        <div class="hosting-plan <?php echo $plan['is_popular'] ? 'popular' : ''; ?>">
+                        <div class="hosting-plan <?php echo $plan['is_popular'] ? 'popular' : ''; ?>" data-href="/pages/hosting/shared.php">
                             <?php if ($plan['is_popular']): ?>
                                 <div class="plan-badge">Популярний</div>
                             <?php endif; ?>
-                            
+
                             <div class="plan-header">
                                 <h3 class="plan-name"><?php echo escapeOutput($plan['name_ua']); ?></h3>
                                 <div class="plan-price">
@@ -313,7 +313,7 @@ $current_lang = $current_lang ?? 'ua';
                                     <span class="period">/місяць</span>
                                 </div>
                             </div>
-                            
+
                             <div class="plan-features">
                                 <div class="feature">
                                     <i class="bi bi-hdd"></i>
@@ -336,7 +336,7 @@ $current_lang = $current_lang ?? 'ua';
                                     <span>Безкоштовний SSL</span>
                                 </div>
                             </div>
-                            
+
                             <a href="/pages/hosting/shared.php" class="plan-btn <?php echo $plan['is_popular'] ? 'btn-primary' : 'btn-outline'; ?>">
                                 Обрати план
                             </a>
