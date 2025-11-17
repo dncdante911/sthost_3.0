@@ -4,6 +4,9 @@
  * Файл: /admin/login.php
  */
 
+// Определяем константу для работы с includes
+define('SECURE_ACCESS', true);
+
 session_start();
 
 // Если уже авторизован - перенаправляем в админку
