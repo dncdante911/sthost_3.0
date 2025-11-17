@@ -172,7 +172,7 @@ $current_lang = $current_lang ?? 'ua';
         
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
-                <div class="service-card">
+                <div class="service-card" data-href="/pages/hosting/shared.php">
                     <div class="service-icon">
                         <i class="bi bi-hdd-stack"></i>
                     </div>
@@ -190,9 +190,9 @@ $current_lang = $current_lang ?? 'ua';
                     <a href="/pages/hosting/shared.php" class="service-btn">Детальніше</a>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
-                <div class="service-card featured">
+                <div class="service-card featured" data-href="/pages/vds/virtual.php">
                     <div class="featured-badge">Популярно</div>
                     <div class="service-icon">
                         <i class="bi bi-cloud"></i>
@@ -211,9 +211,9 @@ $current_lang = $current_lang ?? 'ua';
                     <a href="/pages/vds/virtual.php" class="service-btn">Детальніше</a>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
-                <div class="service-card">
+                <div class="service-card" data-href="/pages/domains/register.php">
                     <div class="service-icon">
                         <i class="bi bi-globe2"></i>
                     </div>
@@ -254,32 +254,32 @@ $current_lang = $current_lang ?? 'ua';
                 <?php endforeach; ?>
             <?php else: ?>
                 <!-- Статические данные если БД недоступна -->
-                <div class="domain-card">
+                <div class="domain-card" data-href="/pages/domains/register.php">
                     <div class="domain-zone">.com.ua</div>
                     <div class="domain-price">150 грн/рік</div>
                     <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
                 </div>
-                <div class="domain-card">
+                <div class="domain-card" data-href="/pages/domains/register.php">
                     <div class="domain-zone">.ua</div>
                     <div class="domain-price">200 грн/рік</div>
                     <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
                 </div>
-                <div class="domain-card">
+                <div class="domain-card" data-href="/pages/domains/register.php">
                     <div class="domain-zone">.info</div>
                     <div class="domain-price">300 грн/рік</div>
                     <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
                 </div>
-                <div class="domain-card">
+                <div class="domain-card" data-href="/pages/domains/register.php">
                     <div class="domain-zone">.com</div>
                     <div class="domain-price">350 грн/рік</div>
                     <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
                 </div>
-                <div class="domain-card">
+                <div class="domain-card" data-href="/pages/domains/register.php">
                     <div class="domain-zone">.org</div>
                     <div class="domain-price">400 грн/рік</div>
                     <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
                 </div>
-                <div class="domain-card">
+                <div class="domain-card" data-href="/pages/domains/register.php">
                     <div class="domain-zone">.net</div>
                     <div class="domain-price">450 грн/рік</div>
                     <a href="/pages/domains/register.php" class="domain-btn">Зареєструвати</a>
@@ -358,7 +358,7 @@ $current_lang = $current_lang ?? 'ua';
                     <p class="section-subtitle">Будьте в курсі всіх оновлень та новин StormHosting UA</p>
                 </div>
                 <div class="col-auto">
-                    <a href="/pages/news/" class="btn btn-outline-primary">Всі новини</a>
+                    <a href="javascript:void(0);" id="showAllNewsBtn" class="btn btn-outline-primary">Всі новини</a>
                 </div>
             </div>
         </div>
@@ -367,7 +367,7 @@ $current_lang = $current_lang ?? 'ua';
             <?php if (isset($latest_news) && is_array($latest_news)): ?>
                 <?php foreach(array_slice($latest_news, 0, 4) as $index => $news): ?>
                     <div class="col-lg-6 col-md-6">
-                        <article class="news-card <?php echo $index === 0 ? 'featured' : ''; ?>">
+                        <article class="news-card <?php echo $index === 0 ? 'featured' : ''; ?>" data-news-id="<?php echo $news['id']; ?>">
                             <?php if ($news['image']): ?>
                                 <div class="news-image">
                                     <img src="<?php echo escapeOutput($news['image']); ?>" alt="<?php echo escapeOutput($news['title']); ?>">
@@ -377,23 +377,23 @@ $current_lang = $current_lang ?? 'ua';
                                     <i class="bi bi-newspaper"></i>
                                 </div>
                             <?php endif; ?>
-                            
+
                             <div class="news-content">
                                 <div class="news-meta">
                                     <time datetime="<?php echo date('Y-m-d', strtotime($news['created_at'])); ?>">
                                         <?php echo formatDate($news['created_at'], 'd.m.Y'); ?>
                                     </time>
                                 </div>
-                                
+
                                 <h3 class="news-title">
-                                    <a href="/pages/news/<?php echo $news['id']; ?>"><?php echo escapeOutput($news['title']); ?></a>
+                                    <a href="javascript:void(0);"><?php echo escapeOutput($news['title']); ?></a>
                                 </h3>
-                                
+
                                 <p class="news-excerpt">
                                     <?php echo escapeOutput(mb_substr(strip_tags($news['content']), 0, 120)); ?>...
                                 </p>
-                                
-                                <a href="/pages/news/<?php echo $news['id']; ?>" class="news-link">
+
+                                <a href="javascript:void(0);" class="news-link">
                                     Читати далі <i class="bi bi-arrow-right"></i>
                                 </a>
                             </div>
@@ -502,6 +502,178 @@ $current_lang = $current_lang ?? 'ua';
     </div>
 </section>
 
+<!-- Модальное окно для новости -->
+<div class="modal fade" id="newsModal" tabindex="-1" aria-labelledby="newsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newsModalLabel">
+                    <i class="bi bi-newspaper me-2"></i>
+                    <span id="newsModalTitle">Завантаження...</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="newsModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Завантаження...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для всех новостей -->
+<div class="modal fade" id="allNewsModal" tabindex="-1" aria-labelledby="allNewsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="allNewsModalLabel">
+                    <i class="bi bi-newspaper me-2"></i>
+                    Всі новини StormHosting UA
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="allNewsModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Завантаження...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Стили для модального окна новостей */
+#newsModal .modal-content,
+#allNewsModal .modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+#newsModal .modal-header,
+#allNewsModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    border-bottom: none;
+    padding: 1.5rem;
+}
+
+#newsModal .modal-header .btn-close,
+#allNewsModal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#newsModalBody img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.news-modal-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.news-modal-meta {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.news-modal-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.news-modal-content h1,
+.news-modal-content h2,
+.news-modal-content h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.news-modal-content p {
+    margin-bottom: 1rem;
+}
+
+.all-news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.all-news-item {
+    background: #f8fafc;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid #e2e8f0;
+}
+
+.all-news-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+    border-color: #667eea;
+}
+
+.all-news-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.all-news-item-placeholder {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(45deg, #f1f5f9, #e2e8f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.all-news-item-placeholder i {
+    font-size: 3rem;
+    color: #94a3b8;
+}
+
+.all-news-item-content {
+    padding: 1.5rem;
+}
+
+.all-news-item-date {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+
+.all-news-item-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.75rem;
+}
+
+.all-news-item-excerpt {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+</style>
+
 <!-- JavaScript для анимаций и интерактивности -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -606,6 +778,208 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ============================================================================
+    // КЛИКАБЕЛЬНЫЕ КАРТОЧКИ
+    // ============================================================================
+
+    // Делаем карточки услуг кликабельными
+    document.querySelectorAll('.service-card[data-href], .domain-card[data-href], .hosting-plan[data-href]').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Не переходить если кликнули по ссылке или кнопке внутри карточки
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+                return;
+            }
+
+            const href = this.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+
+    // ============================================================================
+    // МОДАЛЬНЫЕ ОКНА НОВОСТЕЙ
+    // ============================================================================
+
+    // Функция для загрузки одной новости
+    async function loadNewsModal(newsId) {
+        const modal = new bootstrap.Modal(document.getElementById('newsModal'));
+        const modalTitle = document.getElementById('newsModalTitle');
+        const modalBody = document.getElementById('newsModalBody');
+
+        // Показываем модальное окно с загрузкой
+        modalTitle.textContent = 'Завантаження...';
+        modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Завантаження...</span>
+                </div>
+            </div>
+        `;
+        modal.show();
+
+        try {
+            // Загружаем новость через AJAX
+            const response = await fetch(`/api/news/get.php?id=${newsId}`);
+            const data = await response.json();
+
+            if (data.success && data.news) {
+                const news = data.news;
+                modalTitle.textContent = news.title;
+
+                let imageHtml = '';
+                if (news.image) {
+                    imageHtml = `<img src="${escapeHtml(news.image)}" alt="${escapeHtml(news.title)}" class="news-modal-image">`;
+                }
+
+                modalBody.innerHTML = `
+                    ${imageHtml}
+                    <div class="news-modal-meta">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        ${formatDate(news.created_at)}
+                    </div>
+                    <div class="news-modal-content">
+                        ${news.content}
+                    </div>
+                `;
+            } else {
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Не вдалося завантажити новину
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading news:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Помилка завантаження новини
+                </div>
+            `;
+        }
+    }
+
+    // Функция для загрузки всех новостей
+    async function loadAllNewsModal() {
+        const modal = new bootstrap.Modal(document.getElementById('allNewsModal'));
+        const modalBody = document.getElementById('allNewsModalBody');
+
+        // Показываем модальное окно с загрузкой
+        modalBody.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Завантаження...</span>
+                </div>
+            </div>
+        `;
+        modal.show();
+
+        try {
+            // Загружаем все новости через AJAX
+            const response = await fetch('/api/news/list.php');
+            const data = await response.json();
+
+            if (data.success && data.news && data.news.length > 0) {
+                let newsHtml = '<div class="all-news-grid">';
+
+                data.news.forEach(news => {
+                    let imageHtml = '';
+                    if (news.image) {
+                        imageHtml = `<img src="${escapeHtml(news.image)}" alt="${escapeHtml(news.title)}">`;
+                    } else {
+                        imageHtml = `
+                            <div class="all-news-item-placeholder">
+                                <i class="bi bi-newspaper"></i>
+                            </div>
+                        `;
+                    }
+
+                    const excerpt = news.content.replace(/<[^>]*>/g, '').substring(0, 120);
+
+                    newsHtml += `
+                        <div class="all-news-item" data-news-id="${news.id}">
+                            ${imageHtml}
+                            <div class="all-news-item-content">
+                                <div class="all-news-item-date">
+                                    <i class="bi bi-calendar3 me-1"></i>
+                                    ${formatDate(news.created_at)}
+                                </div>
+                                <div class="all-news-item-title">${escapeHtml(news.title)}</div>
+                                <div class="all-news-item-excerpt">${escapeHtml(excerpt)}...</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                newsHtml += '</div>';
+                modalBody.innerHTML = newsHtml;
+
+                // Добавляем обработчики кликов для элементов списка новостей
+                document.querySelectorAll('#allNewsModal .all-news-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const newsId = this.getAttribute('data-news-id');
+                        bootstrap.Modal.getInstance(document.getElementById('allNewsModal')).hide();
+                        setTimeout(() => loadNewsModal(newsId), 300);
+                    });
+                });
+            } else {
+                modalBody.innerHTML = `
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Немає доступних новин
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading news list:', error);
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Помилка завантаження новин
+                </div>
+            `;
+        }
+    }
+
+    // Обработчики кликов по карточкам новостей
+    document.querySelectorAll('.news-card[data-news-id]').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Не открывать если кликнули по ссылке
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                e.preventDefault();
+            }
+
+            const newsId = this.getAttribute('data-news-id');
+            loadNewsModal(newsId);
+        });
+    });
+
+    // Обработчик кнопки "Всі новини"
+    const showAllNewsBtn = document.getElementById('showAllNewsBtn');
+    if (showAllNewsBtn) {
+        showAllNewsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadAllNewsModal();
+        });
+    }
+
+    // Вспомогательные функции
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
+    }
 });
 </script>
 
