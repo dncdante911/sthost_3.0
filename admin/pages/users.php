@@ -4,7 +4,15 @@
  * Файл: /admin/pages/users.php
  */
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних.');
+}
 ?>
 
 <div class="card">
@@ -48,9 +56,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 50");
-                    if ($result && $result->num_rows > 0) {
-                        while ($user = $result->fetch_assoc()) {
+                    $result = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 50");
+                    if ($result && $result->rowCount() > 0) {
+                        while ($user = $result->fetch(PDO::FETCH_ASSOC)) {
                             echo '<tr>';
                             echo '<td>' . $user['id'] . '</td>';
                             echo '<td>' . htmlspecialchars($user['email']) . '</td>';
@@ -91,5 +99,3 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
     <i class="bi bi-info-circle me-2"></i>
     <strong>Управління користувачами:</strong> Тут ви можете переглядати та керувати обліковими записами користувачів.
 </div>
-
-<?php $conn->close(); ?>

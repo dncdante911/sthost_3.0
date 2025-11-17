@@ -4,7 +4,15 @@
  * Файл: /admin/pages/domains.php
  */
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+
+// Получаем PDO подключение
+try {
+    $pdo = DatabaseConnection::getSiteConnection();
+} catch (Exception $e) {
+    die('Помилка підключення до бази даних.');
+}
 ?>
 
 <div class="card">
@@ -30,9 +38,9 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
                 </thead>
                 <tbody>
                     <?php
-                    $result = $conn->query("SELECT * FROM domain_zones ORDER BY zone ASC");
-                    if ($result && $result->num_rows > 0) {
-                        while ($domain = $result->fetch_assoc()) {
+                    $result = $pdo->query("SELECT * FROM domain_zones ORDER BY zone ASC");
+                    if ($result && $result->rowCount() > 0) {
+                        while ($domain = $result->fetch(PDO::FETCH_ASSOC)) {
                             echo '<tr>';
                             echo '<td>' . $domain['id'] . '</td>';
                             echo '<td><strong>' . htmlspecialchars($domain['zone']) . '</strong></td>';
@@ -67,5 +75,3 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
     <i class="bi bi-info-circle me-2"></i>
     <strong>Управління доменними зонами:</strong> Тут ви можете додавати, редагувати та видаляти доменні зони, які доступні для реєстрації.
 </div>
-
-<?php $conn->close(); ?>
