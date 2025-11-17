@@ -4,6 +4,9 @@
  * Файл: /admin/logout.php
  */
 
+// Определяем константу для работы с includes
+define('SECURE_ACCESS', true);
+
 session_start();
 
 // Удаляем все данные сессии
