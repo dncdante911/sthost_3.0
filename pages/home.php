@@ -1043,4 +1043,5 @@ document.querySelectorAll('.plan-btn').forEach(btn => {
     });
 });
 </script>
+<script src="/assets/js/security-protection.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>

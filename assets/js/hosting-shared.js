@@ -150,17 +150,9 @@ function initOrderForm() {
             
             // Показ індикатора завантаження
             const submitBtn = this.querySelector('button[type="submit"]');
-            const originalHtml = submitBtn.innerHTML;
+            const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '';
-
-            const spinner = document.createElement('span');
-            spinner.className = 'spinner-border spinner-border-sm me-2';
-            submitBtn.appendChild(spinner);
-
-            const loadingText = document.createElement('span');
-            loadingText.textContent = 'Обробка...';
-            submitBtn.appendChild(loadingText);
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Обробка...';
             
             // Відправка даних на сервер
             fetch('/api/orders/shared-hosting.php', {
@@ -202,7 +194,7 @@ function initOrderForm() {
             .finally(() => {
                 // Відновлення кнопки
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalHtml;
+                submitBtn.innerHTML = originalText;
             });
         });
     }
@@ -213,26 +205,14 @@ function showNotification(type, message) {
     // Створення елемента повідомлення
     const notification = document.createElement('div');
     notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show notification`;
-
-    const flexDiv = document.createElement('div');
-    flexDiv.className = 'd-flex align-items-center';
-
-    const icon = document.createElement('i');
-    icon.className = `bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2`;
-    flexDiv.appendChild(icon);
-
-    const messageDiv = document.createElement('div');
-    messageDiv.textContent = message;
-    flexDiv.appendChild(messageDiv);
-
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.className = 'btn-close';
-    closeButton.setAttribute('data-bs-dismiss', 'alert');
-
-    notification.appendChild(flexDiv);
-    notification.appendChild(closeButton);
-
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            <div>${message}</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
     // Стилі для позиціонування
     notification.style.cssText = `
         position: fixed;
@@ -243,9 +223,9 @@ function showNotification(type, message) {
         max-width: 500px;
         animation: slideIn 0.3s ease;
     `;
-
+    
     document.body.appendChild(notification);
-
+    
     // Автоматичне закриття через 5 секунд
     setTimeout(() => {
         notification.classList.remove('show');
@@ -385,7 +365,7 @@ document.querySelectorAll('.cpanel-section').forEach(section => {
             pointer-events: none;
             z-index: 1000;
         `;
-
+        
         document.body.appendChild(tooltip);
         
         const rect = this.getBoundingClientRect();

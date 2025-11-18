@@ -385,120 +385,64 @@ class DomainRegistration {
         const statusClass = result.available ? 'result-available' : 'result-unavailable';
         const statusIcon = result.available ? 'check-circle' : 'x-circle';
         const statusText = result.available ? 'Доступний' : 'Зайнятий';
+        const statusColor = result.available ? 'success' : 'danger';
 
-        const card = document.createElement('div');
-        card.className = `search-result-card ${statusClass}`;
-
-        // Header
-        const header = document.createElement('div');
-        header.className = 'result-header';
-
-        const domainDiv = document.createElement('div');
-        domainDiv.className = 'result-domain';
-        domainDiv.textContent = result.domain;
-
-        const statusDiv = document.createElement('div');
-        statusDiv.className = `result-status ${result.available ? 'available' : 'unavailable'}`;
-
-        const statusIcon_el = document.createElement('i');
-        statusIcon_el.className = `bi bi-${statusIcon}`;
-
-        const statusSpan = document.createElement('span');
-        statusSpan.textContent = statusText;
-
-        statusDiv.appendChild(statusIcon_el);
-        statusDiv.appendChild(statusSpan);
-
-        header.appendChild(domainDiv);
-        header.appendChild(statusDiv);
-        card.appendChild(header);
-
-        // Body
-        if (result.available) {
-            // Details
-            const details = document.createElement('div');
-            details.className = 'result-details';
-
-            const priceDiv = document.createElement('div');
-            priceDiv.className = 'result-price';
-            priceDiv.textContent = this.formatPrice(result.price) + ' / рік';
-
-            const renewalDiv = document.createElement('div');
-            renewalDiv.className = 'result-renewal';
-            renewalDiv.textContent = 'Продовження: ' + this.formatPrice(result.renewal_price) + ' / рік';
-
-            details.appendChild(priceDiv);
-            details.appendChild(renewalDiv);
-            card.appendChild(details);
-
-            // Actions
-            const actions = document.createElement('div');
-            actions.className = 'result-actions';
-
-            const registerBtn = document.createElement('button');
-            registerBtn.className = 'btn-register';
-            registerBtn.innerHTML = '<i class="bi bi-cart-plus"></i> Додати до кошика';
-            registerBtn.addEventListener('click', () => {
-                window.location.href = '/cart/add-domain?domain=' + encodeURIComponent(result.domain);
-            });
-
-            const detailsBtn = document.createElement('button');
-            detailsBtn.className = 'btn btn-outline-primary';
-            detailsBtn.innerHTML = '<i class="bi bi-info-circle"></i> Детальніше';
-
-            const extraInfo = document.createElement('div');
-            extraInfo.className = 'result-extra-info';
-            extraInfo.style.display = 'none';
-            extraInfo.innerHTML = `<h5>Що включено:</h5>
+        const html = `
+            <div class="search-result-card ${statusClass}">
+                <div class="result-header">
+                    <div class="result-domain">${result.domain}</div>
+                    <div class="result-status ${result.available ? 'available' : 'unavailable'}">
+                        <i class="bi bi-${statusIcon}"></i>
+                        <span>${statusText}</span>
+                    </div>
+                </div>
+                
+                ${result.available ? `
+                    <div class="result-details">
+                        <div class="result-price">${this.formatPrice(result.price)} / рік</div>
+                        <div class="result-renewal">Продовження: ${this.formatPrice(result.renewal_price)} / рік</div>
+                    </div>
+                    
+                    <div class="result-actions">
+                        <button class="btn-register" onclick="window.location.href='/cart/add-domain?domain=${encodeURIComponent(result.domain)}'">
+                            <i class="bi bi-cart-plus"></i>
+                            Додати до кошика
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="this.parentElement.previousElementSibling.style.display='block'">
+                            <i class="bi bi-info-circle"></i>
+                            Детальніше
+                        </button>
+                    </div>
+                    
+                    <div class="result-extra-info" style="display: none;">
+                        <h5>Що включено:</h5>
                         <ul>
                             <li>Безкоштовне керування DNS</li>
                             <li>Захист конфіденційності WHOIS</li>
                             <li>Автопродовження (опціонально)</li>
                             <li>Підтримка 24/7</li>
-                        </ul>`;
+                        </ul>
+                    </div>
+                ` : `
+                    <div class="result-message">
+                        <p>Цей домен уже зареєстрований. Спробуйте інше ім'я або іншу доменну зону.</p>
+                    </div>
+                    
+                    <div class="result-actions">
+                        <button class="btn btn-outline-primary" onclick="window.open('/pages/domains/whois.php?domain=${encodeURIComponent(result.domain)}', '_blank')">
+                            <i class="bi bi-search"></i>
+                            WHOIS інформація
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="domainRegistration.suggestAlternatives('${result.domain}')">
+                            <i class="bi bi-lightbulb"></i>
+                            Альтернативи
+                        </button>
+                    </div>
+                `}
+            </div>
+        `;
 
-            detailsBtn.addEventListener('click', () => {
-                extraInfo.style.display = extraInfo.style.display === 'none' ? 'block' : 'none';
-            });
-
-            actions.appendChild(registerBtn);
-            actions.appendChild(detailsBtn);
-            card.appendChild(actions);
-            card.appendChild(extraInfo);
-        } else {
-            // Unavailable message
-            const message = document.createElement('div');
-            message.className = 'result-message';
-            const p = document.createElement('p');
-            p.textContent = 'Цей домен уже зареєстрований. Спробуйте інше ім\'я або іншу доменну зону.';
-            message.appendChild(p);
-            card.appendChild(message);
-
-            // Actions
-            const actions = document.createElement('div');
-            actions.className = 'result-actions';
-
-            const whoisBtn = document.createElement('button');
-            whoisBtn.className = 'btn btn-outline-primary';
-            whoisBtn.innerHTML = '<i class="bi bi-search"></i> WHOIS інформація';
-            whoisBtn.addEventListener('click', () => {
-                window.open('/pages/domains/whois.php?domain=' + encodeURIComponent(result.domain), '_blank');
-            });
-
-            const altBtn = document.createElement('button');
-            altBtn.className = 'btn btn-outline-secondary';
-            altBtn.innerHTML = '<i class="bi bi-lightbulb"></i> Альтернативи';
-            altBtn.addEventListener('click', () => {
-                this.suggestAlternatives(result.domain);
-            });
-
-            actions.appendChild(whoisBtn);
-            actions.appendChild(altBtn);
-            card.appendChild(actions);
-        }
-
-        this.searchResults.innerHTML = '';
-        this.searchResults.appendChild(card);
+        this.searchResults.innerHTML = html;
         this.searchResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -506,65 +450,35 @@ class DomainRegistration {
      * Display bulk search results
      */
     displayBulkResults(results) {
-        const bulkContainer = document.createElement('div');
-        bulkContainer.className = 'bulk-results';
+        const html = `
+            <div class="bulk-results">
+                ${results.map(result => `
+                    <div class="bulk-result-item ${result.available ? 'available' : 'unavailable'}">
+                        <div class="bulk-result-header">
+                            <div class="bulk-domain">${result.domain}</div>
+                            <div class="bulk-status ${result.available ? 'text-success' : 'text-danger'}">
+                                <i class="bi bi-${result.available ? 'check-circle' : 'x-circle'}"></i>
+                                ${result.available ? 'Доступний' : 'Зайнятий'}
+                            </div>
+                        </div>
+                        
+                        ${result.available ? `
+                            <div class="bulk-price">${this.formatPrice(result.price)} / рік</div>
+                            <button class="btn btn-sm btn-primary w-100 mt-2" onclick="window.location.href='/cart/add-domain?domain=${encodeURIComponent(result.domain)}'">
+                                <i class="bi bi-cart-plus"></i>
+                                Додати до кошика
+                            </button>
+                        ` : `
+                            <div class="bulk-unavailable">
+                                <small class="text-muted">Недоступний для реєстрації</small>
+                            </div>
+                        `}
+                    </div>
+                `).join('')}
+            </div>
+        `;
 
-        results.forEach(result => {
-            const item = document.createElement('div');
-            item.className = `bulk-result-item ${result.available ? 'available' : 'unavailable'}`;
-
-            // Header
-            const header = document.createElement('div');
-            header.className = 'bulk-result-header';
-
-            const domainDiv = document.createElement('div');
-            domainDiv.className = 'bulk-domain';
-            domainDiv.textContent = result.domain;
-
-            const statusDiv = document.createElement('div');
-            statusDiv.className = `bulk-status ${result.available ? 'text-success' : 'text-danger'}`;
-
-            const statusIcon = document.createElement('i');
-            statusIcon.className = `bi bi-${result.available ? 'check-circle' : 'x-circle'}`;
-
-            const statusText = document.createElement('span');
-            statusText.textContent = result.available ? 'Доступний' : 'Зайнятий';
-
-            statusDiv.appendChild(statusIcon);
-            statusDiv.appendChild(statusText);
-
-            header.appendChild(domainDiv);
-            header.appendChild(statusDiv);
-            item.appendChild(header);
-
-            if (result.available) {
-                const priceDiv = document.createElement('div');
-                priceDiv.className = 'bulk-price';
-                priceDiv.textContent = this.formatPrice(result.price) + ' / рік';
-                item.appendChild(priceDiv);
-
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-sm btn-primary w-100 mt-2';
-                btn.innerHTML = '<i class="bi bi-cart-plus"></i> Додати до кошика';
-                btn.addEventListener('click', () => {
-                    window.location.href = '/cart/add-domain?domain=' + encodeURIComponent(result.domain);
-                });
-                item.appendChild(btn);
-            } else {
-                const unavailDiv = document.createElement('div');
-                unavailDiv.className = 'bulk-unavailable';
-                const small = document.createElement('small');
-                small.className = 'text-muted';
-                small.textContent = 'Недоступний для реєстрації';
-                unavailDiv.appendChild(small);
-                item.appendChild(unavailDiv);
-            }
-
-            bulkContainer.appendChild(item);
-        });
-
-        this.searchResults.innerHTML = '';
-        this.searchResults.appendChild(bulkContainer);
+        this.searchResults.innerHTML = html;
         this.searchResults.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -608,34 +522,24 @@ class DomainRegistration {
             `get-${baseName}`
         ];
 
-        const suggestionsDiv = document.createElement('div');
-        suggestionsDiv.className = 'domain-suggestions';
-
-        const title = document.createElement('h5');
-        title.textContent = 'Альтернативні варіанти:';
-        suggestionsDiv.appendChild(title);
-
-        const grid = document.createElement('div');
-        grid.className = 'suggestions-grid';
-
-        suggestions.forEach(suggestion => {
-            const btn = document.createElement('button');
-            btn.className = 'suggestion-item';
-            btn.textContent = suggestion + '.ua';
-            btn.addEventListener('click', () => {
-                this.domainInput.value = suggestion;
-                this.handleSearch(new Event('submit'));
-            });
-            grid.appendChild(btn);
-        });
-
-        suggestionsDiv.appendChild(grid);
+        const html = `
+            <div class="domain-suggestions">
+                <h5>Альтернативні варіанти:</h5>
+                <div class="suggestions-grid">
+                    ${suggestions.map(suggestion => `
+                        <button class="suggestion-item" onclick="domainRegistration.domainInput.value='${suggestion}'; domainRegistration.handleSearch(event)">
+                            ${suggestion}.ua
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
 
         const existingSuggestions = document.querySelector('.domain-suggestions');
         if (existingSuggestions) {
-            existingSuggestions.replaceWith(suggestionsDiv);
+            existingSuggestions.innerHTML = html;
         } else {
-            this.searchResults.appendChild(suggestionsDiv);
+            this.searchResults.insertAdjacentHTML('beforeend', html);
         }
     }
 
@@ -704,38 +608,20 @@ class DomainRegistration {
     showError(message) {
         // Create or update error element
         let errorElement = document.querySelector('.search-error');
-
+        
         if (!errorElement) {
             errorElement = document.createElement('div');
             errorElement.className = 'search-error';
             this.searchResults.parentNode.insertBefore(errorElement, this.searchResults);
-        } else {
-            errorElement.innerHTML = '';
         }
 
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-danger d-flex align-items-center';
-        alert.setAttribute('role', 'alert');
-
-        const icon = document.createElement('i');
-        icon.className = 'bi bi-exclamation-triangle me-2';
-
-        const span = document.createElement('span');
-        span.textContent = message;
-
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'btn-close ms-auto';
-        closeBtn.addEventListener('click', () => {
-            if (errorElement.parentNode) {
-                errorElement.remove();
-            }
-        });
-
-        alert.appendChild(icon);
-        alert.appendChild(span);
-        alert.appendChild(closeBtn);
-        errorElement.appendChild(alert);
+        errorElement.innerHTML = `
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <span>${message}</span>
+                <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+            </div>
+        `;
 
         // Auto-remove after 5 seconds
         setTimeout(() => {

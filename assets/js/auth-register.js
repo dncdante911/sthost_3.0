@@ -303,30 +303,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function showAlert(type, message) {
         const alertContainer = document.getElementById('alertContainer');
         if (!alertContainer) return;
-
+        
         const alert = document.createElement('div');
         alert.className = `alert alert-${type} alert-dismissible fade show`;
-
-        const iconSpan = document.createElement('i');
-        iconSpan.className = `bi bi-${getAlertIcon(type)} me-2`;
-
-        const messageDiv = document.createElement('div');
-        messageDiv.textContent = message;
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'd-flex align-items-center';
-        contentDiv.appendChild(iconSpan);
-        contentDiv.appendChild(messageDiv);
-
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'btn-close';
-        closeBtn.setAttribute('data-bs-dismiss', 'alert');
-        closeBtn.setAttribute('aria-label', 'Close');
-
-        alert.appendChild(contentDiv);
-        alert.appendChild(closeBtn);
-
+        alert.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi bi-${getAlertIcon(type)} me-2"></i>
+                <div>${message}</div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
         alertContainer.appendChild(alert);
         
         // Автоматически скрыть через 5 секунд
