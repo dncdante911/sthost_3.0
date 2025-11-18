@@ -377,21 +377,14 @@ class ModernHeader {
     
     showFlashMessage(message, type = 'info') {
         if (!this.flashContainer) return;
-
+        
         const alert = document.createElement('div');
         alert.className = `alert alert-${type} alert-dismissible`;
-
-        const messageSpan = document.createElement('span');
-        messageSpan.textContent = message;
-
-        const closeBtn = document.createElement('button');
-        closeBtn.type = 'button';
-        closeBtn.className = 'btn-close btn-close-white';
-        closeBtn.setAttribute('aria-label', 'Close');
-
-        alert.appendChild(messageSpan);
-        alert.appendChild(closeBtn);
-
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+        `;
+        
         this.flashContainer.appendChild(alert);
         this.setupFlashMessage(alert);
     }

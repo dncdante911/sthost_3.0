@@ -390,27 +390,15 @@ function loadSavedConfig() {
 function proceedToOrder() {
     const orderSummary = document.getElementById('order-summary');
     const totalPrice = document.getElementById('total-price').textContent;
-
-    orderSummary.innerHTML = '';
-
-    const title = document.createElement('h5');
-    title.textContent = 'Деталі замовлення';
-    orderSummary.appendChild(title);
-
-    // Copy summary content safely
-    const summaryContent = document.getElementById('summary-content');
-    if (summaryContent) {
-        const summaryClone = summaryContent.cloneNode(true);
-        orderSummary.appendChild(summaryClone);
-    }
-
-    const totalDiv = document.createElement('div');
-    totalDiv.className = 'mt-3 pt-3 border-top';
-    const totalStrong = document.createElement('strong');
-    totalStrong.textContent = 'Всього до оплати: ' + totalPrice + ' ₴/міс';
-    totalDiv.appendChild(totalStrong);
-    orderSummary.appendChild(totalDiv);
-
+    
+    orderSummary.innerHTML = `
+        <h5>Деталі замовлення</h5>
+        ${document.getElementById('summary-content').innerHTML}
+        <div class="mt-3 pt-3 border-top">
+            <strong>Всього до оплати: ${totalPrice} ₴/міс</strong>
+        </div>
+    `;
+    
     const modal = new bootstrap.Modal(document.getElementById('orderModal'));
     modal.show();
 }
@@ -474,20 +462,13 @@ function showNotification(message, type = 'info') {
         min-width: 300px;
         animation: slideIn 0.3s ease;
     `;
-
-    const messageSpan = document.createElement('span');
-    messageSpan.textContent = message;
-
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'btn-close';
-    closeBtn.setAttribute('data-bs-dismiss', 'alert');
-
-    notification.appendChild(messageSpan);
-    notification.appendChild(closeBtn);
-
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
     document.body.appendChild(notification);
-
+    
     setTimeout(() => {
         notification.classList.remove('show');
         setTimeout(() => notification.remove(), 300);

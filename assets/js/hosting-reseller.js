@@ -383,20 +383,13 @@ function showNotification(message, type = 'info') {
     // Створення елемента сповіщення
     const notification = document.createElement('div');
     notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show notification`;
-
-    const messageSpan = document.createElement('span');
-    messageSpan.textContent = message;
-
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'btn-close';
-    closeBtn.setAttribute('data-bs-dismiss', 'alert');
-
-    notification.appendChild(messageSpan);
-    notification.appendChild(closeBtn);
-
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
     document.body.appendChild(notification);
-
+    
     // Автоматичне закриття через 5 секунд
     setTimeout(() => {
         notification.classList.remove('show');
