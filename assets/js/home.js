@@ -175,13 +175,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            const originalText = button.innerHTML;
-            
+            const originalHtml = button.innerHTML;
+            const originalText = button.textContent;
+
             // Показываем индикатор загрузки
             button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Підписуємо...';
             button.disabled = true;
             emailInput.disabled = true;
-            
+
             // AJAX запрос на подписку
             submitNewsletterSubscription(email)
                 .then(() => {
@@ -193,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     showToast('Виникла помилка при підписці. Спробуйте пізніше.', 'error');
                 })
                 .finally(() => {
-                    button.innerHTML = originalText;
+                    button.innerHTML = originalHtml;
                     button.disabled = false;
                     emailInput.disabled = false;
                 });
@@ -286,17 +287,30 @@ document.addEventListener('DOMContentLoaded', function() {
         toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'assertive');
         toast.setAttribute('aria-atomic', 'true');
-        
-        toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">
-                    <i class="bi bi-${config.icon} me-2"></i>
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" 
-                        data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        `;
+
+        const toastFlex = document.createElement('div');
+        toastFlex.className = 'd-flex';
+
+        const toastBody = document.createElement('div');
+        toastBody.className = 'toast-body';
+
+        const icon = document.createElement('i');
+        icon.className = `bi bi-${config.icon} me-2`;
+        toastBody.appendChild(icon);
+
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        toastBody.appendChild(messageSpan);
+
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close btn-close-white me-2 m-auto';
+        closeButton.setAttribute('data-bs-dismiss', 'toast');
+        closeButton.setAttribute('aria-label', 'Close');
+
+        toastFlex.appendChild(toastBody);
+        toastFlex.appendChild(closeButton);
+        toast.appendChild(toastFlex);
 
         toastContainer.appendChild(toast);
 

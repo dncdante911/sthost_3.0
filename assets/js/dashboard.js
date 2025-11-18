@@ -481,26 +481,46 @@ class NotificationManager {
             pointer-events: auto;
             position: relative;
         `;
-        
+
         const icon = this.getIcon(type);
-        
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="font-size: 1.5rem;">${icon}</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 600; margin-bottom: ${message ? '4px' : '0'};">${title}</div>
-                    ${message ? `<div style="font-size: 0.9rem; opacity: 0.9;">${message}</div>` : ''}
-                </div>
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="background: none; border: none; color: white; 
-                               font-size: 1.2rem; cursor: pointer; opacity: 0.7;
-                               width: 24px; height: 24px; display: flex; 
-                               align-items: center; justify-content: center;">
-                    ×
-                </button>
-            </div>
-        `;
-        
+
+        const flexContainer = document.createElement('div');
+        flexContainer.style.cssText = 'display: flex; align-items: center; gap: 12px;';
+
+        const iconDiv = document.createElement('div');
+        iconDiv.style.fontSize = '1.5rem';
+        iconDiv.textContent = icon;
+
+        const contentDiv = document.createElement('div');
+        contentDiv.style.flex = '1';
+
+        const titleDiv = document.createElement('div');
+        titleDiv.style.cssText = `font-weight: 600; margin-bottom: ${message ? '4px' : '0'};`;
+        titleDiv.textContent = title;
+        contentDiv.appendChild(titleDiv);
+
+        if (message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = 'font-size: 0.9rem; opacity: 0.9;';
+            messageDiv.textContent = message;
+            contentDiv.appendChild(messageDiv);
+        }
+
+        const closeButton = document.createElement('button');
+        closeButton.style.cssText = `background: none; border: none; color: white;
+                                      font-size: 1.2rem; cursor: pointer; opacity: 0.7;
+                                      width: 24px; height: 24px; display: flex;
+                                      align-items: center; justify-content: center;`;
+        closeButton.textContent = '×';
+        closeButton.addEventListener('click', () => {
+            notification.parentElement.removeChild(notification);
+        });
+
+        flexContainer.appendChild(iconDiv);
+        flexContainer.appendChild(contentDiv);
+        flexContainer.appendChild(closeButton);
+        notification.appendChild(flexContainer);
+
         return notification;
     }
     

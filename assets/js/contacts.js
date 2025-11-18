@@ -350,35 +350,50 @@
 
     window.loadMap = function() {
         if (mapLoaded) return;
-        
+
         const mapContainer = document.getElementById('mapContainer');
         if (!mapContainer) return;
-        
+
         // Показуємо завантаження
-        mapContainer.innerHTML = `
-            <div class="map-loading">
-                <div style="text-align: center; padding: 50px; color: #6b7280;">
-                    <div style="font-size: 2rem; margin-bottom: 20px;">🗺️</div>
-                    <div>Завантаження карти...</div>
-                </div>
-            </div>
-        `;
-        
+        mapContainer.innerHTML = '';
+
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'map-loading';
+
+        const innerDiv = document.createElement('div');
+        innerDiv.style.cssText = 'text-align: center; padding: 50px; color: #6b7280;';
+
+        const emojiDiv = document.createElement('div');
+        emojiDiv.style.cssText = 'font-size: 2rem; margin-bottom: 20px;';
+        emojiDiv.textContent = '🗺️';
+
+        const textDiv = document.createElement('div');
+        textDiv.textContent = 'Завантаження карти...';
+
+        innerDiv.appendChild(emojiDiv);
+        innerDiv.appendChild(textDiv);
+        loadingDiv.appendChild(innerDiv);
+        mapContainer.appendChild(loadingDiv);
+
         // Симуляція завантаження карти
         setTimeout(() => {
-            mapContainer.innerHTML = `
-                <div class="map-embed">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2645.123456789!2d35.046127!3d48.464717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDjCsDI3JzUzLjAiTiAzNcKwMDInNDYuMCJF!5e0!3m2!1suk!2sua!4v1234567890123!5m2!1suk!2sua"
-                        width="100%" 
-                        height="300" 
-                        style="border:0; border-radius: 8px;" 
-                        allowfullscreen="" 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
-            `;
+            mapContainer.innerHTML = '';
+
+            const mapEmbed = document.createElement('div');
+            mapEmbed.className = 'map-embed';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2645.123456789!2d35.046127!3d48.464717!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDjCsDI3JzUzLjAiTiAzNcKwMDInNDYuMCJF!5e0!3m2!1suk!2sua!4v1234567890123!5m2!1suk!2sua';
+            iframe.width = '100%';
+            iframe.height = '300';
+            iframe.style.cssText = 'border:0; border-radius: 8px;';
+            iframe.allowFullscreen = true;
+            iframe.loading = 'lazy';
+            iframe.referrerPolicy = 'no-referrer-when-downgrade';
+
+            mapEmbed.appendChild(iframe);
+            mapContainer.appendChild(mapEmbed);
+
             mapLoaded = true;
             showNotification('Карту завантажено', 'success', 3000);
         }, 1500);
@@ -519,15 +534,22 @@
 
     function showFieldError(field, message) {
         clearFieldError(field);
-        
+
         field.classList.add('error');
         field.setAttribute('aria-invalid', 'true');
-        
+
         const errorElement = document.createElement('div');
         errorElement.className = 'field-error';
-        errorElement.innerHTML = `⚠ ${message}`;
         errorElement.setAttribute('role', 'alert');
-        
+
+        const warningIcon = document.createElement('span');
+        warningIcon.textContent = '⚠ ';
+        errorElement.appendChild(warningIcon);
+
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        errorElement.appendChild(messageSpan);
+
         field.parentNode.appendChild(errorElement);
     }
 
@@ -557,20 +579,24 @@
         button.classList.add('loading');
         button.disabled = true;
         button.setAttribute('aria-busy', 'true');
-        
-        const originalText = button.innerHTML;
-        button.dataset.originalText = originalText;
-        button.innerHTML = '<span>Відправка...</span>';
+
+        const originalHtml = button.innerHTML;
+        button.dataset.originalHtml = originalHtml;
+        button.innerHTML = '';
+
+        const span = document.createElement('span');
+        span.textContent = 'Відправка...';
+        button.appendChild(span);
     }
 
     function hideLoadingState(button) {
         button.classList.remove('loading');
         button.disabled = false;
         button.removeAttribute('aria-busy');
-        
-        const originalText = button.dataset.originalText;
-        if (originalText) {
-            button.innerHTML = originalText;
+
+        const originalHtml = button.dataset.originalHtml;
+        if (originalHtml) {
+            button.innerHTML = originalHtml;
         }
     }
 
@@ -605,40 +631,51 @@
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.setAttribute('role', 'alert');
-        
+
         const colors = {
             'success': '#10b981',
             'error': '#ef4444',
             'warning': '#f59e0b',
             'info': '#3b82f6'
         };
-        
+
         const icons = {
             'success': '✓',
             'error': '⚠',
             'warning': '⚠',
             'info': 'ℹ'
         };
-        
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="color: ${colors[type]}; font-weight: bold; font-size: 1.2rem;">
-                    ${icons[type]}
-                </div>
-                <span style="flex: 1; color: #111827;">${escapeHtml(message)}</span>
-                <button class="notification-close" style="
-                    background: none; 
-                    border: none; 
-                    cursor: pointer; 
-                    color: #6b7280;
-                    font-size: 1.2rem;
-                    padding: 0;
-                    width: 20px;
-                    height: 20px;
-                ">×</button>
-            </div>
+
+        const flexDiv = document.createElement('div');
+        flexDiv.style.cssText = 'display: flex; align-items: center; gap: 12px;';
+
+        const iconDiv = document.createElement('div');
+        iconDiv.style.cssText = `color: ${colors[type]}; font-weight: bold; font-size: 1.2rem;`;
+        iconDiv.textContent = icons[type];
+
+        const messageSpan = document.createElement('span');
+        messageSpan.style.cssText = 'flex: 1; color: #111827;';
+        messageSpan.textContent = message;
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'notification-close';
+        closeButton.style.cssText = `
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #6b7280;
+            font-size: 1.2rem;
+            padding: 0;
+            width: 20px;
+            height: 20px;
         `;
-        
+        closeButton.textContent = '×';
+
+        flexDiv.appendChild(iconDiv);
+        flexDiv.appendChild(messageSpan);
+        flexDiv.appendChild(closeButton);
+        notification.appendChild(flexDiv);
+
         return notification;
     }
 

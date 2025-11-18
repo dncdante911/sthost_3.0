@@ -1859,6 +1859,11 @@ const StormChat = new StormChatWidget();
 window.StormChat = StormChat;
 </script>
 
+<!-- SECURITY FIX: DOMPurify для защиты от XSS -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+<!-- SECURITY FIX: DOM Helpers для безопасной работы с DOM -->
+<script src="/assets/js/dom-helpers.js"></script>
 
 </body>
 </html>

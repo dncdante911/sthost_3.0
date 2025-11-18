@@ -222,9 +222,9 @@ class LibvirtManager {
         try {
             $template_path = $config['template_path'];
             $disk_path = "/var/lib/libvirt/images/{$config['name']}.qcow2";
-            
-            // Копируем шаблон
-            $cmd = "qemu-img create -f qcow2 -b {$template_path} {$disk_path} {$config['disk_size']}G";
+
+            // Копируем шаблон (SECURITY FIX: escapeshellarg для защиты от command injection)
+            $cmd = "qemu-img create -f qcow2 -b " . escapeshellarg($template_path) . " " . escapeshellarg($disk_path) . " " . escapeshellarg($config['disk_size'] . 'G');
             exec($cmd, $output, $return_code);
             
             if ($return_code !== 0) {
@@ -337,9 +337,9 @@ class LibvirtManager {
             if (file_exists($disk_path)) {
                 unlink($disk_path);
             }
-            
-            // Создаем новый диск из шаблона
-            $cmd = "qemu-img create -f qcow2 -b {$template_path} {$disk_path}";
+
+            // Создаем новый диск из шаблона (SECURITY FIX: escapeshellarg для защиты от command injection)
+            $cmd = "qemu-img create -f qcow2 -b " . escapeshellarg($template_path) . " " . escapeshellarg($disk_path);
             exec($cmd, $output, $return_code);
             
             if ($return_code !== 0) {
@@ -479,8 +479,9 @@ class LibvirtManager {
             if (!file_exists($disk_path)) {
                 return 0;
             }
-            
-            $cmd = "qemu-img info {$disk_path} | grep 'disk size'";
+
+            // SECURITY FIX: escapeshellarg для защиты от command injection
+            $cmd = "qemu-img info " . escapeshellarg($disk_path) . " | grep 'disk size'";
             exec($cmd, $output);
             
             if (!empty($output[0])) {

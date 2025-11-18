@@ -574,30 +574,62 @@ document.head.insertAdjacentHTML('beforeend', toastStyles);
     showDomainStatus(status, domain) {
         const statusContainer = document.getElementById('domainStatus');
         if (!statusContainer) return;
-        
+
+        statusContainer.innerHTML = '';
+
+        const alert = document.createElement('div');
         if (status === 'registered') {
-            statusContainer.innerHTML = `
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <div>
-                        <strong>Домен ${domain} зареєстрований</strong><br>
-                        Ви можете розпочати процес трансферу
-                    </div>
-                </div>
-            `;
+            alert.className = 'alert alert-success';
+
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-check-circle-fill';
+
+            const div = document.createElement('div');
+
+            const title = document.createElement('strong');
+            title.textContent = 'Домен ' + domain + ' зареєстрований';
+
+            const br = document.createElement('br');
+
+            const text = document.createElement('span');
+            text.textContent = 'Ви можете розпочати процес трансферу';
+
+            div.appendChild(title);
+            div.appendChild(br);
+            div.appendChild(text);
+
+            alert.appendChild(icon);
+            alert.appendChild(div);
         } else {
-            statusContainer.innerHTML = `
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle-fill"></i>
-                    <div>
-                        <strong>Домен ${domain} вільний</strong><br>
-                        Цей домен не зареєстрований і не може бути перенесений.
-                        <a href="/domains/register?domain=${encodeURIComponent(domain)}">Зареєструвати домен</a>
-                    </div>
-                </div>
-            `;
+            alert.className = 'alert alert-info';
+
+            const icon = document.createElement('i');
+            icon.className = 'bi bi-info-circle-fill';
+
+            const div = document.createElement('div');
+
+            const title = document.createElement('strong');
+            title.textContent = 'Домен ' + domain + ' вільний';
+
+            const br = document.createElement('br');
+
+            const text = document.createElement('span');
+            text.textContent = 'Цей домен не зареєстрований і не може бути перенесений. ';
+
+            const link = document.createElement('a');
+            link.href = '/domains/register?domain=' + encodeURIComponent(domain);
+            link.textContent = 'Зареєструвати домен';
+
+            div.appendChild(title);
+            div.appendChild(br);
+            div.appendChild(text);
+            div.appendChild(link);
+
+            alert.appendChild(icon);
+            alert.appendChild(div);
         }
-        
+
+        statusContainer.appendChild(alert);
         statusContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     
@@ -666,75 +698,169 @@ document.head.insertAdjacentHTML('beforeend', toastStyles);
     }
     
     showSuccessModal(data) {
-        const modalHtml = `
-            <div class="modal fade" id="transferSuccessModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title">
-                                <i class="bi bi-check-circle-fill"></i>
-                                Заявка прийнята!
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="text-center py-3">
-                                <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
-                                <h4 class="mt-3">Трансфер розпочато</h4>
-                                <p class="text-muted">
-                                    Заявка на трансфер домену <strong>${data.domain}</strong> успішно подана.
-                                </p>
-                            </div>
-                            
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i>
-                                <strong>Що далі?</strong>
-                                <ol class="mb-0 mt-2">
-                                    <li>Ми надішлемо інструкції на ${data.email}</li>
-                                    <li>Підтвердіть трансфер у поточного реєстратора</li>
-                                    <li>Очікуйте завершення (5-7 днів)</li>
-                                </ol>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрити</button>
-                            <a href="/domains" class="btn btn-primary">
-                                <i class="bi bi-arrow-left"></i>
-                                До доменів
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'modal fade';
+        modalDiv.id = 'transferSuccessModal';
+        modalDiv.setAttribute('tabindex', '-1');
+
+        const dialog = document.createElement('div');
+        dialog.className = 'modal-dialog modal-dialog-centered';
+
+        const content = document.createElement('div');
+        content.className = 'modal-content';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'modal-header bg-success text-white';
+
+        const headerIcon = document.createElement('i');
+        headerIcon.className = 'bi bi-check-circle-fill';
+
+        const title = document.createElement('h5');
+        title.className = 'modal-title';
+        title.appendChild(headerIcon);
+        const titleText = document.createElement('span');
+        titleText.textContent = ' Заявка прийнята!';
+        title.appendChild(titleText);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'btn-close btn-close-white';
+        closeBtn.setAttribute('data-bs-dismiss', 'modal');
+
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+
+        // Body
+        const body = document.createElement('div');
+        body.className = 'modal-body';
+
+        const centerDiv = document.createElement('div');
+        centerDiv.className = 'text-center py-3';
+
+        const bodyIcon = document.createElement('i');
+        bodyIcon.className = 'bi bi-check-circle text-success';
+        bodyIcon.style.fontSize = '4rem';
+
+        const bodyTitle = document.createElement('h4');
+        bodyTitle.className = 'mt-3';
+        bodyTitle.textContent = 'Трансфер розпочато';
+
+        const bodyP = document.createElement('p');
+        bodyP.className = 'text-muted';
+        const pText = document.createElement('span');
+        pText.textContent = 'Заявка на трансфер домену ';
+        const pDomain = document.createElement('strong');
+        pDomain.textContent = data.domain;
+        const pEnd = document.createElement('span');
+        pEnd.textContent = ' успішно подана.';
+        bodyP.appendChild(pText);
+        bodyP.appendChild(pDomain);
+        bodyP.appendChild(pEnd);
+
+        centerDiv.appendChild(bodyIcon);
+        centerDiv.appendChild(bodyTitle);
+        centerDiv.appendChild(bodyP);
+
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-info';
+
+        const alertIcon = document.createElement('i');
+        alertIcon.className = 'bi bi-info-circle';
+
+        const alertTitle = document.createElement('strong');
+        alertTitle.textContent = 'Що далі?';
+
+        const ol = document.createElement('ol');
+        ol.className = 'mb-0 mt-2';
+
+        const li1 = document.createElement('li');
+        li1.textContent = 'Ми надішлемо інструкції на ' + data.email;
+
+        const li2 = document.createElement('li');
+        li2.textContent = 'Підтвердіть трансфер у поточного реєстратора';
+
+        const li3 = document.createElement('li');
+        li3.textContent = 'Очікуйте завершення (5-7 днів)';
+
+        ol.appendChild(li1);
+        ol.appendChild(li2);
+        ol.appendChild(li3);
+
+        alert.appendChild(alertIcon);
+        alert.appendChild(alertTitle);
+        alert.appendChild(ol);
+
+        body.appendChild(centerDiv);
+        body.appendChild(alert);
+
+        // Footer
+        const footer = document.createElement('div');
+        footer.className = 'modal-footer';
+
+        const closeFooterBtn = document.createElement('button');
+        closeFooterBtn.type = 'button';
+        closeFooterBtn.className = 'btn btn-secondary';
+        closeFooterBtn.setAttribute('data-bs-dismiss', 'modal');
+        closeFooterBtn.textContent = 'Закрити';
+
+        const domainLink = document.createElement('a');
+        domainLink.href = '/domains';
+        domainLink.className = 'btn btn-primary';
+        const linkIcon = document.createElement('i');
+        linkIcon.className = 'bi bi-arrow-left';
+        const linkText = document.createElement('span');
+        linkText.textContent = ' До доменів';
+        domainLink.appendChild(linkIcon);
+        domainLink.appendChild(linkText);
+
+        footer.appendChild(closeFooterBtn);
+        footer.appendChild(domainLink);
+
+        content.appendChild(header);
+        content.appendChild(body);
+        content.appendChild(footer);
+
+        dialog.appendChild(content);
+        modalDiv.appendChild(dialog);
+
         // Add modal to page
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        
+        document.body.appendChild(modalDiv);
+
         // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('transferSuccessModal'));
+        const modal = new bootstrap.Modal(modalDiv);
         modal.show();
-        
+
         // Remove modal after hidden
-        document.getElementById('transferSuccessModal').addEventListener('hidden.bs.modal', function() {
+        modalDiv.addEventListener('hidden.bs.modal', function() {
             this.remove();
         });
     }
     
     showToast(message, type = 'info') {
-        const toastHtml = `
-            <div class="toast-notification ${type}">
-                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
-        
         const container = document.getElementById('toastContainer') || this.createToastContainer();
-        container.insertAdjacentHTML('beforeend', toastHtml);
-        
-        const toast = container.lastElementChild;
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+
+        const icon = document.createElement('i');
+        const iconMap = {
+            success: 'check-circle',
+            error: 'x-circle',
+            warning: 'exclamation-circle',
+            info: 'info-circle'
+        };
+        icon.className = `bi bi-${iconMap[type] || 'info-circle'}`;
+
+        const span = document.createElement('span');
+        span.textContent = message;
+
+        toast.appendChild(icon);
+        toast.appendChild(span);
+        container.appendChild(toast);
+
         setTimeout(() => toast.classList.add('show'), 10);
-        
+
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
