@@ -39,7 +39,8 @@ function loadEnv($path) {
 }
 
 // Load .env file from project root
-$envPath = __DIR__ . '/../.env';
+// Using DOCUMENT_ROOT for absolute path (works from any include location)
+$envPath = $_SERVER['DOCUMENT_ROOT'] . '/.env';
 loadEnv($envPath);
 
 /**
