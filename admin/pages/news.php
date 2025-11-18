@@ -7,6 +7,7 @@
 // Подключение к БД
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/csrf.php';
 
 // Получаем PDO подключение
 try {
@@ -20,6 +21,7 @@ $news_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 // Обработка POST запросов
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    CSRF::validateOrDie();
     if (isset($_POST['action'])) {
         switch ($_POST['action']) {
             case 'create':
@@ -169,6 +171,7 @@ if (isset($error_message)) {
 
 <!-- Форма удаления (скрытая) -->
 <form id="deleteNewsForm" method="POST" style="display: none;">
+    <?php echo CSRF::tokenField(); ?>
     <input type="hidden" name="action" value="delete">
     <input type="hidden" name="id" id="deleteNewsId">
 </form>
@@ -219,6 +222,7 @@ if ($action === 'edit' && $news_id > 0) {
 
     <div class="card-body">
         <form method="POST" enctype="multipart/form-data">
+            <?php echo CSRF::tokenField(); ?>
             <input type="hidden" name="action" value="<?php echo $action === 'create' ? 'create' : 'update'; ?>">
             <?php if ($action === 'edit'): ?>
             <input type="hidden" name="id" value="<?php echo $news_data['id']; ?>">
