@@ -21,7 +21,11 @@ $user_id = getUserId();
 $fossbilling_client_id = getFossBillingClientId();
 
 try {
-    $api_key = 'YPo9tN0V8Ih0pdHDAKJfBuyNA08CnaHN';
+    // Load API key from environment variable (SECURITY FIX: no hardcoded credentials)
+    $api_key = env('FOSSBILLING_API_KEY', '');
+    if (empty($api_key)) {
+        error_log('FOSSBILLING_API_KEY not configured in .env file');
+    }
     $servers = [];
     
     if ($fossbilling_client_id) {

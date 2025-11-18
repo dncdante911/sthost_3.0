@@ -30,6 +30,12 @@ $page = $page_parts[1] ?? '';
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css" rel="stylesheet">
 
+    <!-- SECURITY AUDIT FIX: Consolidated CSS Variables -->
+    <link rel="stylesheet" href="/assets/css/_variables.css">
+
+    <!-- SECURITY AUDIT FIX: Utility Classes (replaces inline styles) -->
+    <link rel="stylesheet" href="/assets/css/utilities.css">
+
     <!-- Modal Auth CSS -->
     <link rel="stylesheet" href="/assets/css/pages/modal-auth.css">
 

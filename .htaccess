@@ -95,12 +95,35 @@ Options -Indexes
 </IfModule>
 
 # =============================================================================
-# Headers - Базовые заголовки безопасности
+# Headers - Усиленные заголовки безопасности (SECURITY AUDIT FIX)
 # =============================================================================
 <IfModule mod_headers.c>
+    # MIME type sniffing prevention
     Header set X-Content-Type-Options "nosniff"
+
+    # XSS Protection (для старых браузеров, современные используют CSP)
     Header set X-XSS-Protection "1; mode=block"
+
+    # Prevent clickjacking
     Header set X-Frame-Options "SAMEORIGIN"
+
+    # Referrer Policy - контролирует какую информацию передавать в Referer header
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # HSTS - Strict Transport Security (включить только если используете HTTPS!)
+    # Заставляет браузер всегда использовать HTTPS
+    # ВАЖНО: Раскомментируйте только если у вас настроен SSL сертификат!
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+    # Permissions Policy - контролирует доступ к API браузера
+    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+    # Content Security Policy (CSP) - защита от XSS атак
+    # Это базовая политика, настройте под ваши нужды
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https: http:; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://www.google.com; frame-src 'self' https://www.google.com;"
+
+    # NOTE: CSP использует 'unsafe-inline' и 'unsafe-eval' для совместимости
+    # В будущем рекомендуется удалить их и перейти на nonce-based или hash-based CSP
 </IfModule>
 
 # =============================================================================

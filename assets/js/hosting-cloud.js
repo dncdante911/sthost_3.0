@@ -170,23 +170,36 @@ function updatePrice() {
 // Відображення обраних опцій
 function updateOptionsDisplay() {
     const container = document.getElementById('selected-options');
-    
+
     if (currentConfig.options.length === 0) {
         container.innerHTML = '';
         return;
     }
-    
-    let html = '<div class="mb-2"><small class="text-white-50">Додаткові опції:</small></div>';
+
+    container.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.className = 'mb-2';
+    const headerSmall = document.createElement('small');
+    headerSmall.className = 'text-white-50';
+    headerSmall.textContent = 'Додаткові опції:';
+    header.appendChild(headerSmall);
+    container.appendChild(header);
+
     currentConfig.options.forEach(opt => {
-        html += `
-            <div class="selected-option">
-                <span>${opt.name}</span>
-                <span>+${opt.price} ₴</span>
-            </div>
-        `;
+        const optDiv = document.createElement('div');
+        optDiv.className = 'selected-option';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = opt.name;
+
+        const priceSpan = document.createElement('span');
+        priceSpan.textContent = '+' + opt.price + ' ₴';
+
+        optDiv.appendChild(nameSpan);
+        optDiv.appendChild(priceSpan);
+        container.appendChild(optDiv);
     });
-    
-    container.innerHTML = html;
 }
 
 // Вибір готової конфігурації
@@ -432,11 +445,7 @@ function showNotification(message, type = 'info') {
     // Створення елемента сповіщення
     const notification = document.createElement('div');
     notification.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show notification`;
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
+
     // Стилі для позиціонування
     notification.style.cssText = `
         position: fixed;
@@ -446,9 +455,20 @@ function showNotification(message, type = 'info') {
         min-width: 300px;
         animation: slideIn 0.3s ease;
     `;
-    
+
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close';
+    closeBtn.setAttribute('data-bs-dismiss', 'alert');
+
+    notification.appendChild(messageSpan);
+    notification.appendChild(closeBtn);
+
     document.body.appendChild(notification);
-    
+
     // Автоматичне закриття через 5 секунд
     setTimeout(() => {
         notification.classList.remove('show');
