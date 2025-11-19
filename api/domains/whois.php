@@ -150,13 +150,7 @@ function parseWhoisData($raw_data, $tld) {
         'name_servers' => []
     ];
 
-    // Check if domain is available
-    if (preg_match('/(no match|not found|no entries found|available|not exist)/i', $raw_data)) {
-        $data['status'] = 'available';
-        return $data;
-    }
-
-    // Parse dates
+    // Parse dates FIRST (before checking availability)
     if (preg_match('/(?:creation date|created|registered):\s*([^\r\n]+)/i', $raw_data, $matches)) {
         $data['creation_date'] = trim($matches[1]);
     }
@@ -191,5 +185,38 @@ function parseWhoisData($raw_data, $tld) {
         $data['name_servers'] = array_values($data['name_servers']);
     }
 
+    // Check if domain is REGISTERED (if we have registrar OR creation date OR nameservers)
+    // This is the CORRECT way - if domain has registration info, it's registered!
+    if (!empty($data['registrar']) || !empty($data['creation_date']) || !empty($data['name_servers'])) {
+        $data['status'] = 'registered';
+        return $data;
+    }
+
+    // IMPROVED: Check if domain is available with MORE SPECIFIC patterns
+    // These patterns must be at the BEGINNING of a line or after specific keywords
+    $availability_patterns = [
+        '/^no match for/im',                    // "No match for domain..."
+        '/^not found:/im',                      // "Not found: domain..."
+        '/domain not found/im',                 // "Domain not found"
+        '/no entries found/im',                 // "No entries found"
+        '/no data found/im',                    // "No data found"
+        '/status:\s*free/im',                   // "Status: free"
+        '/status:\s*available/im',              // "Status: available"
+        '/is available for/im',                 // "...is available for registration"
+        '/NOT FOUND/m',                         // Some servers return all caps
+        '/no match$/im',                        // "No match" at end of line
+        '/вільний/iu',                          // "вільний" (Ukrainian: free)
+        '/домен вільний/iu',                    // "домен вільний"
+    ];
+
+    foreach ($availability_patterns as $pattern) {
+        if (preg_match($pattern, $raw_data)) {
+            $data['status'] = 'available';
+            return $data;
+        }
+    }
+
+    // If we got here, domain is registered (we have WHOIS data but no "available" markers)
+    $data['status'] = 'registered';
     return $data;
 }
