@@ -4,6 +4,18 @@
 **Author:** StormHosting UA Team
 **Last Updated:** 2025-11-19
 
+---
+
+## 📖 Documentation Languages
+
+- 🇺🇸 **English**: [README.md](README.md) (this file) - Brief overview
+- 🇷🇺 **Русский**: [README_RU.md](README_RU.md) ⭐ **ПОЛНАЯ ДОКУМЕНТАЦИЯ** - Complete setup guide with exact file paths
+- 🧹 **Cleanup Guide**: [CLEANUP.md](CLEANUP.md) - List of files to remove
+
+**Recommended**: Read [README_RU.md](README_RU.md) for detailed configuration instructions!
+
+---
+
 ## 📋 Table of Contents
 
 1. [Project Overview](#project-overview)
