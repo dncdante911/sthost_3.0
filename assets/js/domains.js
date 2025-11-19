@@ -179,9 +179,18 @@ class DomainManager {
     }
 
     async makeRequest(action, data) {
-        const url = '?ajax=1';
+        // Определяем правильный URL для каждого действия
+        let url;
+        if (action === 'whois_lookup') {
+            url = '/api/domains/whois.php';
+        } else if (action === 'dns_lookup') {
+            url = '/api/domains/dns.php';
+        } else {
+            url = '?ajax=1'; // fallback для других действий
+        }
+
         const formData = new FormData();
-        
+
         formData.append('action', action);
         Object.keys(data).forEach(key => {
             formData.append(key, data[key]);
@@ -189,11 +198,23 @@ class DomainManager {
 
         const response = await fetch(url, {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
         });
 
-        const result = await response.json();
-        
+        const text = await response.text();
+        let result;
+
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            console.error('Invalid JSON response:', text);
+            throw new Error('Сервер повернув некоректну відповідь');
+        }
+
         if (result.error) {
             throw new Error(result.error);
         }
