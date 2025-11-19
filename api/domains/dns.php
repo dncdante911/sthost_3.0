@@ -23,8 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Подключение конфигурации
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
+// Не требуется подключение config.php для DNS
 
 // Типы DNS записей
 $dns_record_types = [
