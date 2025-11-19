@@ -34,3 +34,6 @@ temp/
 # Uploaded files (if you don't want to track them)
 # uploads/
 # files/
+
+# Monitoring configuration with passwords
+config/monitoring.config.php
