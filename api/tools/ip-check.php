@@ -319,8 +319,8 @@ class IPCheckAPI {
             
             if ($response) {
                 $data = json_decode($response, true);
-                
-                if ($data && $data['status'] === 'success') {
+
+                if ($data && isset($data['status']) && $data['status'] === 'success') {
                     // Извлекаем ASN из поля 'as'
                     $asn = '';
                     if (isset($data['as'])) {
