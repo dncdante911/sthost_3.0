@@ -135,21 +135,26 @@ class SiteChecker {
     
     async handleSubmit(e) {
         e.preventDefault();
-        
+
         if (!this.validateUrl()) {
             return;
         }
-        
+
         const selectedLocations = Array.from(document.querySelectorAll('.location-checkbox:checked'))
             .map(cb => cb.value);
-            
+
         if (selectedLocations.length === 0) {
             this.showError('Оберіть хоча б одну локацію для перевірки');
             return;
         }
-        
+
         const url = this.urlInput.value.trim();
-        
+
+        // Очищаем предыдущие результаты
+        if (this.resultsContainer) {
+            this.resultsContainer.innerHTML = '';
+        }
+
         try {
             this.showLoading();
             const results = await this.performSiteCheck(url, selectedLocations);
@@ -176,7 +181,9 @@ class SiteChecker {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
                 }
             });
             

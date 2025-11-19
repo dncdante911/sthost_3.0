@@ -148,14 +148,19 @@ class IPChecker {
     
     async handleSubmit(e) {
         e.preventDefault();
-        
+
         if (!this.validateIP()) {
             return;
         }
-        
+
         const ip = this.ipInput.value.trim();
         const options = this.getCheckOptions();
-        
+
+        // Очищаем предыдущие результаты
+        if (this.resultsContainer) {
+            this.resultsContainer.innerHTML = '';
+        }
+
         try {
             this.showLoading();
             const results = await this.performIPCheck(ip, options);
@@ -191,11 +196,13 @@ class IPChecker {
         }
         
         try {
-            const response = await fetch('/v1/ip-check', {
+            const response = await fetch('/api/tools/ip-check.php', {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
                 }
             });
             

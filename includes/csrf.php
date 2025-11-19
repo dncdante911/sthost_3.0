@@ -1,104 +1,136 @@
 <?php
 /**
  * CSRF Protection Class
- * Provides Cross-Site Request Forgery protection for forms
+ * Защита от Cross-Site Request Forgery атак
  */
 
 class CSRF {
     /**
-     * Generate a new CSRF token or return existing one
-     *
-     * @return string The CSRF token
+     * Генерация CSRF токена
+     * @return string
      */
     public static function generateToken() {
-        if (!isset($_SESSION['csrf_token'])) {
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-            $_SESSION['csrf_token_time'] = time();
+        // Стартуем сессию если еще не запущена
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
 
-        // Regenerate token if it's older than 1 hour
-        if (isset($_SESSION['csrf_token_time']) && (time() - $_SESSION['csrf_token_time']) > 3600) {
+        // Генерируем новый токен если его нет
+        if (!isset($_SESSION['csrf_token']) || !isset($_SESSION['csrf_token_time'])) {
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
             $_SESSION['csrf_token_time'] = time();
+        } else {
+            // Проверяем срок действия токена (1 час)
+            $lifetime = $_ENV['CSRF_TOKEN_LIFETIME'] ?? 3600;
+            if ((time() - $_SESSION['csrf_token_time']) > $lifetime) {
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                $_SESSION['csrf_token_time'] = time();
+            }
         }
 
         return $_SESSION['csrf_token'];
     }
 
     /**
-     * Validate CSRF token
-     *
-     * @param string $token The token to validate
-     * @return bool True if valid, false otherwise
+     * Валидация CSRF токена
+     * @param string $token
+     * @return bool
      */
     public static function validateToken($token) {
-        if (!isset($_SESSION['csrf_token']) || empty($token)) {
+        // Стартуем сессию если еще не запущена
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Проверяем наличие токена в сессии
+        if (!isset($_SESSION['csrf_token'])) {
             return false;
         }
 
-        // Check if token has expired (1 hour)
-        if (isset($_SESSION['csrf_token_time']) && (time() - $_SESSION['csrf_token_time']) > 3600) {
-            return false;
+        // Проверяем срок действия токена
+        if (isset($_SESSION['csrf_token_time'])) {
+            $lifetime = $_ENV['CSRF_TOKEN_LIFETIME'] ?? 3600;
+            if ((time() - $_SESSION['csrf_token_time']) > $lifetime) {
+                return false;
+            }
         }
 
-        // Use hash_equals to prevent timing attacks
+        // Используем hash_equals для защиты от timing attacks
         return hash_equals($_SESSION['csrf_token'], $token);
     }
 
     /**
-     * Generate hidden input field with CSRF token
-     *
-     * @return string HTML input field
+     * Получение HTML кода для скрытого поля с токеном
+     * @return string
      */
-    public static function tokenField() {
+    public static function getTokenField() {
         $token = self::generateToken();
         return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
     }
 
     /**
-     * Get CSRF token value (for AJAX requests)
-     *
-     * @return string The token value
+     * Проверка токена из запроса
+     * @param string $method Request method (POST, GET, etc.)
+     * @return bool
      */
-    public static function getToken() {
-        return self::generateToken();
+    public static function verifyRequest($method = 'POST') {
+        $token = '';
+
+        if ($method === 'POST') {
+            $token = $_POST['csrf_token'] ?? '';
+        } elseif ($method === 'GET') {
+            $token = $_GET['csrf_token'] ?? '';
+        }
+
+        // Проверяем также заголовки для AJAX запросов
+        if (empty($token) && isset($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+            $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
+        }
+
+        return self::validateToken($token);
     }
 
     /**
-     * Validate token from POST request and die with error if invalid
-     *
-     * @param string $errorMessage Optional custom error message
-     * @return void Dies if validation fails
+     * Middleware для автоматической проверки CSRF токена
      */
-    public static function validateOrDie($errorMessage = 'CSRF token validation failed') {
-        $token = $_POST['csrf_token'] ?? $_GET['csrf_token'] ?? '';
-
-        if (!self::validateToken($token)) {
+    public static function protect($method = 'POST') {
+        if (!self::verifyRequest($method)) {
             http_response_code(403);
-
-            // Return JSON for AJAX requests
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                die(json_encode([
-                    'success' => false,
-                    'message' => $errorMessage
-                ]));
-            }
-
-            // Regular HTML response
-            die($errorMessage);
+            die(json_encode([
+                'success' => false,
+                'error' => 'CSRF token validation failed',
+                'message' => 'Недійсний або застарілий токен безпеки.'
+            ]));
         }
     }
 
-    /**
-     * Generate meta tag for AJAX requests (place in <head>)
-     *
-     * @return string HTML meta tag
-     */
-    public static function metaTag() {
-        $token = self::generateToken();
-        return '<meta name="csrf-token" content="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+    public static function clearToken() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        unset($_SESSION['csrf_token']);
+        unset($_SESSION['csrf_token_time']);
+    }
+
+    public static function refreshToken() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        $_SESSION['csrf_token_time'] = time();
+        return $_SESSION['csrf_token'];
     }
 }
-?>
+
+// Helper функции
+function csrf_token() {
+    return CSRF::generateToken();
+}
+
+function csrf_field() {
+    return CSRF::getTokenField();
+}
+
+function verify_csrf($method = 'POST') {
+    return CSRF::verifyRequest($method);
+}
