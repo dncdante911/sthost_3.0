@@ -23,8 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Не требуется подключение config.php для DNS
-
 // Типы DNS записей
 $dns_record_types = [
     'A' => DNS_A,
@@ -56,7 +54,7 @@ if (empty($domain)) {
 
 // Валидация домена
 $domain = strtolower($domain);
-if (!preg_match('/^[a-z0-9][a-z0-9-]*[a-z0-9]\.[a-z]{2,}$|^[a-z0-9]\.[a-z]{2,}$/', $domain)) {
+if (!preg_match('/^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i', $domain)) {
     echo json_encode(['error' => 'Невірний формат домену']);
     exit;
 }
@@ -73,7 +71,7 @@ if (!array_key_exists($record_type, $dns_record_types)) {
 // Выполняем DNS lookup
 try {
     $dns_results = performDNSLookup($domain, $record_type, $dns_record_types[$record_type]);
-    
+
     echo json_encode([
         'success' => true,
         'domain' => $domain,
@@ -81,7 +79,7 @@ try {
         'results' => $dns_results,
         'timestamp' => date('Y-m-d H:i:s')
     ], JSON_UNESCAPED_UNICODE);
-    
+
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
@@ -94,18 +92,15 @@ try {
  */
 function performDNSLookup($domain, $record_type, $dns_type) {
     $results = [];
-    
+
     try {
         // Получаем DNS записи
         $records = @dns_get_record($domain, $dns_type);
-        
+
         if ($records === false || empty($records)) {
-            return [
-                'status' => 'no_records',
-                'message' => 'DNS записи типу ' . $record_type . ' не знайдено для домену ' . $domain
-            ];
+            return [];
         }
-        
+
         // Обрабатываем записи в зависимости от типа
         foreach ($records as $record) {
             $formatted_record = formatDNSRecord($record, $record_type);
@@ -113,13 +108,9 @@ function performDNSLookup($domain, $record_type, $dns_type) {
                 $results[] = $formatted_record;
             }
         }
-        
-        return [
-            'status' => 'success',
-            'count' => count($results),
-            'records' => $results
-        ];
-        
+
+        return $results;
+
     } catch (Exception $e) {
         throw new Exception('DNS lookup failed: ' . $e->getMessage());
     }
@@ -131,64 +122,57 @@ function performDNSLookup($domain, $record_type, $dns_type) {
 function formatDNSRecord($record, $type) {
     $formatted = [
         'type' => $type,
-        'host' => $record['host'] ?? null,
-        'ttl' => $record['ttl'] ?? null
+        'host' => $record['host'] ?? '',
+        'ttl' => $record['ttl'] ?? 0
     ];
-    
+
     switch ($type) {
         case 'A':
-            $formatted['ip'] = $record['ip'] ?? null;
-            $formatted['ipv4'] = $record['ip'] ?? null;
+            $formatted['ip'] = $record['ip'] ?? '';
             break;
-            
+
         case 'AAAA':
-            $formatted['ip'] = $record['ipv6'] ?? null;
-            $formatted['ipv6'] = $record['ipv6'] ?? null;
+            $formatted['ipv6'] = $record['ipv6'] ?? '';
             break;
-            
+
         case 'MX':
-            $formatted['target'] = $record['target'] ?? null;
-            $formatted['priority'] = $record['pri'] ?? null;
-            $formatted['mx'] = $record['target'] ?? null;
+            $formatted['target'] = $record['target'] ?? '';
+            $formatted['pri'] = $record['pri'] ?? 0;
             break;
-            
+
         case 'CNAME':
-            $formatted['target'] = $record['target'] ?? null;
-            $formatted['cname'] = $record['target'] ?? null;
+            $formatted['target'] = $record['target'] ?? '';
             break;
-            
+
         case 'TXT':
-            $formatted['text'] = $record['txt'] ?? null;
-            $formatted['txt'] = $record['txt'] ?? null;
+            $formatted['txt'] = $record['txt'] ?? '';
             break;
-            
+
         case 'NS':
-            $formatted['target'] = $record['target'] ?? null;
-            $formatted['nameserver'] = $record['target'] ?? null;
+            $formatted['target'] = $record['target'] ?? '';
             break;
-            
+
         case 'SOA':
-            $formatted['mname'] = $record['mname'] ?? null;
-            $formatted['rname'] = $record['rname'] ?? null;
-            $formatted['serial'] = $record['serial'] ?? null;
-            $formatted['refresh'] = $record['refresh'] ?? null;
-            $formatted['retry'] = $record['retry'] ?? null;
-            $formatted['expire'] = $record['expire'] ?? null;
-            $formatted['minimum'] = $record['minimum-ttl'] ?? null;
+            $formatted['mname'] = $record['mname'] ?? '';
+            $formatted['rname'] = $record['rname'] ?? '';
+            $formatted['serial'] = $record['serial'] ?? 0;
+            $formatted['refresh'] = $record['refresh'] ?? 0;
+            $formatted['retry'] = $record['retry'] ?? 0;
+            $formatted['expire'] = $record['expire'] ?? 0;
+            $formatted['minimum'] = $record['minimum-ttl'] ?? 0;
             break;
-            
+
         case 'PTR':
-            $formatted['target'] = $record['target'] ?? null;
-            $formatted['ptr'] = $record['target'] ?? null;
+            $formatted['target'] = $record['target'] ?? '';
             break;
-            
+
         case 'SRV':
-            $formatted['target'] = $record['target'] ?? null;
-            $formatted['priority'] = $record['pri'] ?? null;
-            $formatted['weight'] = $record['weight'] ?? null;
-            $formatted['port'] = $record['port'] ?? null;
+            $formatted['target'] = $record['target'] ?? '';
+            $formatted['pri'] = $record['pri'] ?? 0;
+            $formatted['weight'] = $record['weight'] ?? 0;
+            $formatted['port'] = $record['port'] ?? 0;
             break;
     }
-    
+
     return $formatted;
 }
