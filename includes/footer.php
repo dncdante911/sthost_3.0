@@ -159,7 +159,7 @@ html, body {
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/main.js?v=<?php echo filemtime('assets/js/main.js'); ?>"></script>
-    <script src="/assets/js/animations.js?v=<?php echo filemtime('assets/js/animations.js'); ?>"></script>
+    <!-- <script src="/assets/js/animations.js?v=<?php echo filemtime('assets/js/animations.js'); ?>"></script> -->
     
     <?php if (isset($page_js) && !empty($page_js)): ?>
         <script src="/assets/js/pages/<?php echo $page_js; ?>.js?v=<?php echo filemtime("assets/js/pages/{$page_js}.js"); ?>"></script>
@@ -172,7 +172,7 @@ html, body {
     
     <!-- API скрипты для инструментов -->
     <?php if ($page === 'tools' || (isset($need_api) && $need_api)): ?>
-        <script src="/assets/js/api.js?v=<?php echo filemtime('assets/js/api.js'); ?>"></script>
+        <!-- <script src="/assets/js/api.js?v=<?php echo filemtime('assets/js/api.js'); ?>"></script> -->
     <?php endif; ?>
     
     <!-- Google Analytics (замените на ваш ID) -->

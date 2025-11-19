@@ -125,7 +125,7 @@ Options -Indexes
 
     # Content Security Policy (CSP) - защита от XSS атак
     # Это базовая политика, настройте под ваши нужды
-    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https: http:; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; connect-src 'self' https://www.google.com; frame-src 'self' https://www.google.com;"
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://code.jquery.com https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://ipapi.co https://ip-api.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https: http:; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.gstatic.com; connect-src 'self' https://www.google.com https://cdnjs.cloudflare.com https://ipapi.co https://ip-api.com; frame-src 'self' https://www.google.com https://www.openstreetmap.org;"
 
     # NOTE: CSP использует 'unsafe-inline' и 'unsafe-eval' для совместимости
     # В будущем рекомендуется удалить их и перейти на nonce-based или hash-based CSP

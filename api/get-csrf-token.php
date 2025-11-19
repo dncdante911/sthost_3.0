@@ -1,81 +1,34 @@
 <?php
-define('SECURE_ACCESS', true);
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
+/**
+ * CSRF Token API Endpoint
+ * Генерирует и возвращает CSRF токен
+ */
 
-// Настройка заголовков
-header('Content-Type: application/json');
-header('X-Content-Type-Options: nosniff');
+// Подключаем CSRF класс
+require_once __DIR__ . '/../includes/csrf.php';
+
+// Устанавливаем заголовки
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
-
-// Обработка OPTIONS запроса
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-// Начинаем сессию
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Функция для отправки ответа
-function sendResponse($success, $data = [], $message = '') {
-    $response = ['success' => $success];
-    
-    if (!empty($data)) {
-        $response = array_merge($response, $data);
-    }
-    
-    if (!empty($message)) {
-        $response['message'] = $message;
-    }
-    
-    echo json_encode($response, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-// Генерация CSRF токена
-function generateCSRFToken() {
-    if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
-}
-
-// Валидация CSRF токена
-function validateCSRFToken($token) {
-    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
-}
+header('Cache-Control: no-cache, no-store, must-revalidate');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        // Генерируем новый токен
-        $token = generateCSRFToken();
-        
-        sendResponse(true, [
-            'csrf_token' => $token,
-            'session_id' => session_id()
-        ]);
-        
-    } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Проверяем токен
-        $token = $_POST['csrf_token'] ?? $_POST['token'] ?? '';
-        
-        if (validateCSRFToken($token)) {
-            sendResponse(true, ['valid' => true], 'Токен валідний');
-        } else {
-            sendResponse(false, ['valid' => false], 'Невалідний CSRF токен');
-        }
-    } else {
-        http_response_code(405);
-        sendResponse(false, [], 'Метод не дозволений');
-    }
+    // Генерируем токен
+    $token = CSRF::generateToken();
+    
+    // Возвращаем успешный ответ
+    echo json_encode([
+        'success' => true,
+        'token' => $token,
+        'timestamp' => time()
+    ], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
-    error_log('CSRF Token API error: ' . $e->getMessage());
-    sendResponse(false, [], 'Помилка сервера');
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Failed to generate CSRF token',
+        'message' => $e->getMessage()
+    ], JSON_UNESCAPED_UNICODE);
 }
-?>
