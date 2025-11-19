@@ -4,206 +4,163 @@ define('SECURE_ACCESS', true);
 
 // Конфігурація сторінки
 $page = 'whois';
-$page_title = 'WHOIS Lookup - StormHosting UA';
-$meta_description = 'WHOIS сервіс для перевірки інформації про домени .ua, .com.ua та інші. Дізнайтесь хто власник домену, коли закінчується реєстрація.';
-$meta_keywords = 'whois домен, інформація про домен, власник домену, дата реєстрації домену';
+$page_title = 'WHOIS Lookup - Перевірка доменів | StormHosting UA';
+$meta_description = 'Безкоштовна перевірка WHOIS інформації доменів. Дізнайтесь власника, дату реєстрації, закінчення та DNS сервери.';
+$meta_keywords = 'whois домен, whois lookup, інформація про домен, перевірка домену';
 
-// Додаткові CSS та JS файли для цієї сторінки
+// Додаткові CSS та JS файли
 $additional_css = [
-    '/assets/css/pages/domains2.css'
+    '/assets/css/pages/whois-lookup.css'
 ];
 
 $additional_js = [
-    '/assets/js/domains.js'
+    '/assets/js/whois-lookup.js'
 ];
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
-
-// Получаем WHOIS серверы из БД
-try {
-    if (defined('DB_AVAILABLE') && DB_AVAILABLE) {
-        $whois_servers = db_fetch_all(
-            "SELECT zone, whois_server FROM domain_whois_servers WHERE is_active = 1 ORDER BY zone"
-        );
-    } else {
-        throw new Exception('Database not available');
-    }
-} catch (Exception $e) {
-    // Fallback данные
-    $whois_servers = [
-        ['zone' => '.ua', 'whois_server' => 'whois.ua'],
-        ['zone' => '.com.ua', 'whois_server' => 'whois.ua'],
-        ['zone' => '.com', 'whois_server' => 'whois.verisign-grs.com'],
-        ['zone' => '.net', 'whois_server' => 'whois.verisign-grs.com'],
-        ['zone' => '.org', 'whois_server' => 'whois.pir.org']
-    ];
-}
-
 ?>
 
-<!-- WHOIS Hero -->
-<section class="whois-hero py-5">
+<!-- WHOIS Hero Section -->
+<section class="whois-hero">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 text-center">
-                <h1 class="display-5 fw-bold mb-4">WHOIS Lookup</h1>
-                <p class="lead mb-5">Перевірте інформацію про власника домену, дати реєстрації та закінчення, DNS сервери та інші дані.</p>
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="bi bi-search"></i>
+                <span>WHOIS Lookup</span>
+            </div>
+            <h1 class="hero-title">Перевірка WHOIS інформації</h1>
+            <p class="hero-subtitle">Дізнайтесь всю публічну інформацію про будь-який домен:<br>власник, дати реєстрації, DNS сервери та більше</p>
+        </div>
 
-                <!-- WHOIS Search Form -->
-                <div class="whois-search-form">
-                    <form id="whoisForm" class="row g-3 justify-content-center">
-                        <input type="hidden" id="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-
-                        <div class="col-md-8">
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">
-                                    <i class="bi bi-search"></i>
-                                </span>
-                                <input type="text"
-                                       id="whoisDomain"
-                                       class="form-control"
-                                       placeholder="example.com або example.com.ua"
-                                       pattern="[a-zA-Z0-9.-]+"
-                                       required>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="bi bi-info-circle"></i>
-                                Перевірити WHOIS
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- Search Results -->
-                    <div id="whoisResults" class="mt-5"></div>
+        <!-- Search Form -->
+        <div class="whois-search-card">
+            <form id="whoisForm" class="whois-search-form">
+                <div class="search-input-group">
+                    <i class="bi bi-globe search-icon"></i>
+                    <input
+                        type="text"
+                        id="domainInput"
+                        name="domain"
+                        class="search-input"
+                        placeholder="example.com або example.ua"
+                        autocomplete="off"
+                        required>
+                    <button type="submit" class="search-btn" id="searchBtn">
+                        <i class="bi bi-search"></i>
+                        <span>Перевірити</span>
+                    </button>
                 </div>
+                <div class="search-hint">Введіть повне ім'я домену для перевірки WHOIS інформації</div>
+            </form>
+        </div>
+
+        <!-- Results Container -->
+        <div id="whoisResults"></div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Що ви дізнаєтесь з WHOIS?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-person-badge"></i>
+                </div>
+                <h3>Власник домену</h3>
+                <p>Інформація про реєстранта домену, його контактні дані (якщо не приховані)</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <h3>Дати реєстрації</h3>
+                <p>Коли домен був зареєстрований та коли закінчується термін реєстрації</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-hdd-network"></i>
+                </div>
+                <h3>DNS сервери</h3>
+                <p>Список авторитетних DNS серверів, які обслуговують домен</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <h3>Реєстратор</h3>
+                <p>Компанія, через яку зареєстрований домен</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-shield-lock"></i>
+                </div>
+                <h3>Статус домену</h3>
+                <p>Поточний статус домену (активний, заблокований, трансфер і т.д.)</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h3>Історія оновлень</h3>
+                <p>Дата останнього оновлення WHOIS інформації</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- WHOIS Info -->
-<section class="whois-info py-5 bg-light">
+<!-- Privacy Section -->
+<section class="privacy-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <h2 class="section-title">Що таке WHOIS?</h2>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="info-card h-100">
-                    <div class="info-icon">
-                        <i class="bi bi-database"></i>
-                    </div>
-                    <h4>База даних доменів</h4>
-                    <p>WHOIS - це протокол і база даних, що містить інформацію про зареєстровані домени, включаючи дані про власників, реєстраторів та технічні деталі.</p>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="info-card h-100">
-                    <div class="info-icon">
-                        <i class="bi bi-person-badge"></i>
-                    </div>
-                    <h4>Інформація про власника</h4>
-                    <p>Через WHOIS можна дізнатись хто є власником домену, контактну інформацію (якщо не приховано), дати реєстрації та закінчення терміну дії.</p>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="info-card h-100">
-                    <div class="info-icon">
-                        <i class="bi bi-shield-check"></i>
-                    </div>
-                    <h4>Перевірка доменів</h4>
-                    <p>WHOIS допомагає перевірити статус домену, визначити чи доступний він для реєстрації, а також отримати технічну інформацію про DNS сервери.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Supported Zones -->
-<section class="supported-zones py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <h2 class="section-title">Підтримувані доменні зони</h2>
-                <p class="section-subtitle">Наш WHOIS сервіс працює з наступними доменними зонами</p>
-            </div>
-        </div>
-
-        <div class="row g-3">
-            <?php foreach ($whois_servers as $server): ?>
-            <div class="col-lg-2 col-md-3 col-6">
-                <div class="zone-card text-center">
-                    <div class="zone-name"><?php echo escapeOutput($server['zone']); ?></div>
-                    <div class="zone-server"><?php echo escapeOutput($server['whois_server']); ?></div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-</section>
-
-<!-- Privacy Protection -->
-<section class="privacy-section py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h2 class="fw-bold">Захист приватності WHOIS</h2>
-                <p class="lead">Стурбовані приватністю ваших даних в WHOIS базі?</p>
-
-                <div class="privacy-benefits">
-                    <div class="benefit-item">
-                        <i class="bi bi-eye-slash text-primary"></i>
-                        <span>Приховання особистих даних</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="bi bi-shield-lock text-primary"></i>
-                        <span>Захист від спаму та небажаних дзвінків</span>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="bi bi-incognito text-primary"></i>
-                        <span>Анонімна реєстрація доменів</span>
-                    </div>
-                </div>
-
-                <p>При реєстрації домену у нас ви автоматично отримуєте безкоштовний захист приватності WHOIS.</p>
-
-                <a href="/domains/register" class="btn btn-primary btn-lg">
-                    <i class="bi bi-plus-circle"></i>
-                    Зареєструвати домен
+        <div class="privacy-content">
+            <div class="privacy-text">
+                <h2>Захист приватності WHOIS</h2>
+                <p class="lead">Не хочете, щоб ваші особисті дані були видимі у WHOIS?</p>
+                <ul class="privacy-list">
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Приховання імені та адреси власника</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Захист email та телефону від спаму</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Безкоштовно при реєстрації у нас</span>
+                    </li>
+                </ul>
+                <a href="/pages/domains/register.php" class="btn-primary-large">
+                    <i class="bi bi-shield-lock"></i>
+                    Зареєструвати домен з захистом
                 </a>
             </div>
-
-            <div class="col-lg-6">
-                <div class="privacy-visual">
-                    <div class="before-after">
-                        <div class="before">
-                            <h5>Без захисту:</h5>
-                            <div class="whois-data">
-                                <div class="data-line">Name: Іван Петренко</div>
-                                <div class="data-line">Email: ivan@example.com</div>
-                                <div class="data-line">Phone: +380501234567</div>
-                                <div class="data-line">Address: вул. Хрещатик 1, Київ</div>
-                            </div>
+            <div class="privacy-visual">
+                <div class="whois-comparison">
+                    <div class="whois-before">
+                        <div class="comparison-label">Без захисту</div>
+                        <div class="whois-data">
+                            <div class="data-line">Name: Іван Петренко</div>
+                            <div class="data-line">Email: ivan@example.com</div>
+                            <div class="data-line">Phone: +380501234567</div>
+                            <div class="data-line">Address: Київ, Україна</div>
                         </div>
-
-                        <div class="after">
-                            <h5>З захистом:</h5>
-                            <div class="whois-data protected">
-                                <div class="data-line">Name: REDACTED FOR PRIVACY</div>
-                                <div class="data-line">Email: REDACTED FOR PRIVACY</div>
-                                <div class="data-line">Phone: REDACTED FOR PRIVACY</div>
-                                <div class="data-line">Address: REDACTED FOR PRIVACY</div>
-                            </div>
+                    </div>
+                    <div class="whois-after">
+                        <div class="comparison-label protected">З захистом</div>
+                        <div class="whois-data protected">
+                            <div class="data-line">Name: REDACTED FOR PRIVACY</div>
+                            <div class="data-line">Email: REDACTED FOR PRIVACY</div>
+                            <div class="data-line">Phone: REDACTED FOR PRIVACY</div>
+                            <div class="data-line">Address: REDACTED FOR PRIVACY</div>
                         </div>
                     </div>
                 </div>
@@ -212,48 +169,37 @@ try {
     </div>
 </section>
 
-<!-- WHOIS Tools -->
-<section class="whois-tools py-5">
+<!-- Related Tools Section -->
+<section class="tools-section">
     <div class="container">
-        <div class="row">
-            <div class="col-12 text-center mb-5">
-                <h2 class="section-title">Додаткові інструменти</h2>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="tool-card text-center h-100">
-                    <div class="tool-icon">
-                        <i class="bi bi-dns"></i>
-                    </div>
-                    <h4>DNS Lookup</h4>
-                    <p>Перевірте DNS записи домену</p>
-                    <a href="/pages/domains/dns.php" class="btn btn-outline-primary">Перевірити DNS</a>
+        <h2 class="section-title">Інші інструменти</h2>
+        <div class="tools-grid">
+            <a href="/pages/domains/dns.php" class="tool-card">
+                <div class="tool-icon">
+                    <i class="bi bi-diagram-3"></i>
                 </div>
-            </div>
+                <h3>DNS Lookup</h3>
+                <p>Перевірте DNS записи домену</p>
+                <span class="tool-link">Перевірити DNS <i class="bi bi-arrow-right"></i></span>
+            </a>
 
-            <div class="col-lg-4">
-                <div class="tool-card text-center h-100">
-                    <div class="tool-icon">
-                        <i class="bi bi-search"></i>
-                    </div>
-                    <h4>Пошук доменів</h4>
-                    <p>Знайдіть доступні домени</p>
-                    <a href="/pages/domains/register.php" class="btn btn-outline-primary">Знайти домен</a>
+            <a href="/pages/domains/register.php" class="tool-card">
+                <div class="tool-icon">
+                    <i class="bi bi-plus-circle"></i>
                 </div>
-            </div>
+                <h3>Реєстрація доменів</h3>
+                <p>Зареєструйте новий домен</p>
+                <span class="tool-link">Зареєструвати <i class="bi bi-arrow-right"></i></span>
+            </a>
 
-            <div class="col-lg-4">
-                <div class="tool-card text-center h-100">
-                    <div class="tool-icon">
-                        <i class="bi bi-arrow-right-circle"></i>
-                    </div>
-                    <h4>Перенесення доменів</h4>
-                    <p>Перенесіть домен до нас</p>
-                    <a href="/pages/domains/transfer.php" class="btn btn-outline-primary">Перенести</a>
+            <a href="/pages/domains/transfer.php" class="tool-card">
+                <div class="tool-icon">
+                    <i class="bi bi-arrow-left-right"></i>
                 </div>
-            </div>
+                <h3>Трансфер доменів</h3>
+                <p>Перенесіть домен до нас</p>
+                <span class="tool-link">Перенести домен <i class="bi bi-arrow-right"></i></span>
+            </a>
         </div>
     </div>
 </section>
