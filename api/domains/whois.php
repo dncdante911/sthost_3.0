@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// WHOIS servers configuration
+// WHOIS servers configuration (популярні зони для швидкості)
 $whois_servers = [
     '.ua' => 'whois.ua',
     '.com.ua' => 'whois.ua',
@@ -40,11 +40,19 @@ $whois_servers = [
     '.org' => 'whois.pir.org',
     '.info' => 'whois.afilias.net',
     '.biz' => 'whois.biz',
+    '.club' => 'whois.nic.club',
+    '.pro' => 'whois.afilias.net',
     '.eu' => 'whois.eu',
     '.de' => 'whois.denic.de',
     '.pl' => 'whois.dns.pl',
     '.ru' => 'whois.tcinet.ru',
-    '.su' => 'whois.tcinet.ru'
+    '.su' => 'whois.tcinet.ru',
+    '.xyz' => 'whois.nic.xyz',
+    '.online' => 'whois.nic.online',
+    '.site' => 'whois.nic.site',
+    '.store' => 'whois.nic.store',
+    '.tech' => 'whois.nic.tech',
+    '.space' => 'whois.nic.space'
 ];
 
 // Get domain
@@ -73,11 +81,9 @@ if (count($domain_parts) > 2 && in_array(end($domain_parts), ['ua'])) {
 
 $whois_server = $whois_servers[$tld] ?? null;
 
+// Якщо сервер не знайдено - використовуємо IANA для автоматичного визначення
 if (!$whois_server) {
-    echo json_encode([
-        'error' => 'WHOIS сервер для зони ' . $tld . ' не знайдено'
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
+    $whois_server = 'whois.iana.org';
 }
 
 // Perform WHOIS query
