@@ -17,6 +17,8 @@ $additional_js = [
     '/assets/js/domains-transfer.js'
 ];
 
+// Не требуется обработка формы в PHP - используем API
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
@@ -54,56 +56,7 @@ try {
     ];
 }
 
-// Обработка формы трансфера
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'start_transfer') {
-    if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
-        setFlashMessage('Помилка безпеки. Оновіть сторінку та спробуйте знову.', 'error');
-    } else {
-        $domain = sanitizeInput($_POST['domain'] ?? '');
-        $auth_code = sanitizeInput($_POST['auth_code'] ?? '');
-        $contact_email = sanitizeInput($_POST['contact_email'] ?? '');
-        $phone = sanitizeInput($_POST['phone'] ?? '');
-        $notes = sanitizeInput($_POST['notes'] ?? '');
-        
-        if (empty($domain) || empty($auth_code) || empty($contact_email)) {
-            setFlashMessage('Заповніть всі обов\'язкові поля', 'error');
-        } elseif (!validateEmail($contact_email)) {
-            setFlashMessage('Невірний формат email', 'error');
-        } else {
-            // Здесь должна быть логика инициации трансфера
-            // Добавляем в БД заявку на трансфер
-            try {
-                if (function_exists('db_execute')) {
-                    db_execute(
-                        "INSERT INTO contact_requests (name, email, phone, subject, message, form_type, ip_address) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        [
-                            'Domain Transfer Request',
-                            $contact_email,
-                            $phone,
-                            'Трансфер домену: ' . $domain,
-                            "Домен: {$domain}\nКод авторизації: {$auth_code}\nПримітки: {$notes}",
-                            'transfer',
-                            getUserIP()
-                        ]
-                    );
-                }
-                
-                // Логируем активность
-                if (function_exists('logActivity')) {
-                    logActivity('domain_transfer_request', "Domain: {$domain}, Email: {$contact_email}");
-                }
-                
-                setFlashMessage("Заявка на трансфер домену {$domain} подана успішно! Ми зв'яжемося з вами протягом 24 годин.", 'success');
-                
-                // Очищаем форму после успешной отправки
-                unset($_POST);
-                
-            } catch (Exception $e) {
-                setFlashMessage('Помилка при обробці заявки. Спробуйте пізніше.', 'error');
-            }
-        }
-    }
-}
+// Обработка формы перенесена в API (/api/domains/transfer.php)
 
 ?>
 
@@ -239,18 +192,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="transfer-form-card">
                     <div class="form-header text-center">
                         <h2 class="fw-bold">Форма трансферу домену</h2>
-                        <p>Заповніть форму для початку процесу трансферу</p>
+                        <p>Заповніть форму для подачі заявки на трансфер</p>
                     </div>
-                    
-                    <form id="transferForm" class="transfer-form" onsubmit="return handleTransferSubmit(event)">
-                        <div class="row g-4">
-                            <div class="col-12">
-                                <div class="alert alert-info">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    <strong>Швидкий трансфер через WHMCS:</strong> Введіть домен та натисніть кнопку нижче для переходу до системи біллінгу, де ви зможете оплатити та завершити трансфер.
-                                </div>
-                            </div>
 
+                    <!-- Результат отправки формы -->
+                    <div id="transferResults"></div>
+
+                    <form id="transferForm" class="transfer-form">
+                        <div class="row g-4">
                             <div class="col-md-12">
                                 <label for="domain" class="form-label">Домен для трансферу *</label>
                                 <div class="input-group input-group-lg">
@@ -262,10 +211,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                            id="domain"
                                            name="domain"
                                            placeholder="example.com або example.ua"
-                                           pattern="[a-zA-Z0-9.-]+"
                                            required>
                                 </div>
                                 <div class="form-text">Введіть повне ім'я домену включно з зоною</div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label for="auth_code" class="form-label">Код авторизації (EPP/Auth код)</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="auth_code"
+                                       name="auth_code"
+                                       placeholder="Отримайте у поточного реєстратора">
+                                <div class="form-text">Необхідний для підтвердження трансферу</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="contact_email" class="form-label">Email для зв'язку *</label>
+                                <input type="email"
+                                       class="form-control"
+                                       id="contact_email"
+                                       name="contact_email"
+                                       placeholder="email@example.com"
+                                       required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Телефон</label>
+                                <input type="tel"
+                                       class="form-control"
+                                       id="phone"
+                                       name="phone"
+                                       placeholder="+380 XX XXX XX XX">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="notes" class="form-label">Примітки</label>
+                                <textarea class="form-control"
+                                          id="notes"
+                                          name="notes"
+                                          rows="3"
+                                          placeholder="Додаткова інформація (необов'язково)"></textarea>
                             </div>
 
                             <div class="col-12">
@@ -287,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                             <div class="col-12">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="agree_terms" required>
+                                    <input class="form-check-input" type="checkbox" id="agree_terms" name="agree_terms" required>
                                     <label class="form-check-label" for="agree_terms">
                                         Я підтверджую, що маю права на трансфер цього домену та погоджуюсь з <a href="/info/rules" target="_blank">умовами послуг</a> *
                                     </label>
@@ -296,11 +282,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                             <div class="col-12 text-center">
                                 <button type="submit" class="btn btn-primary btn-lg px-5">
-                                    <i class="bi bi-cart-plus"></i>
-                                    Перейти до оформлення трансферу
+                                    <i class="bi bi-check-circle"></i>
+                                    Подати заявку на трансфер
                                 </button>
                                 <p class="text-muted mt-3 small">
-                                    <i class="bi bi-shield-lock"></i> Безпечна оплата через WHMCS
+                                    <i class="bi bi-shield-lock"></i> Безпечна обробка даних
                                 </p>
                             </div>
                         </div>
