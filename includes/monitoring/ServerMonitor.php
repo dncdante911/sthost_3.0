@@ -4,10 +4,12 @@
  * Главный класс для управления мониторингом всех серверов
  */
 
-require_once __DIR__ . '/ISPManagerMonitor.php';
-require_once __DIR__ . '/ProxmoxMonitor.php';
-require_once __DIR__ . '/HAProxyMonitor.php';
-require_once __DIR__ . '/NetworkMonitor.php';
+// Определяем путь к классам мониторинга
+$monitor_path = dirname(__FILE__);
+require_once $monitor_path . '/ISPManagerMonitor.php';
+require_once $monitor_path . '/ProxmoxMonitor.php';
+require_once $monitor_path . '/HAProxyMonitor.php';
+require_once $monitor_path . '/NetworkMonitor.php';
 
 class ServerMonitor {
     private $config;
@@ -18,16 +20,22 @@ class ServerMonitor {
         if ($config_file && file_exists($config_file)) {
             $this->config = require $config_file;
         } else {
+            // Определяем корень проекта
+            $project_root = $_SERVER['DOCUMENT_ROOT'] ?? '/var/www/www-root/data/www/sthost.pro';
+
             // Пытаемся загрузить из стандартного места
-            $default_config = __DIR__ . '/../../config/monitoring.config.php';
-            $example_config = __DIR__ . '/../../config/monitoring.config.example.php';
+            $default_config = $project_root . '/config/monitoring.config.php';
+            $sthost_config = $project_root . '/config/monitoring.config.sthost.php';
+            $example_config = $project_root . '/config/monitoring.config.example.php';
 
             if (file_exists($default_config)) {
                 $this->config = require $default_config;
+            } elseif (file_exists($sthost_config)) {
+                $this->config = require $sthost_config;
             } elseif (file_exists($example_config)) {
                 $this->config = require $example_config;
             } else {
-                throw new Exception("Monitoring configuration file not found");
+                throw new Exception("Monitoring configuration file not found. Tried: $default_config, $sthost_config, $example_config");
             }
         }
 

@@ -76,30 +76,81 @@ $contact_info = [
     ]
 ];
 
-// Статус серверів (можна отримувати з API)
-$server_status = [
-    'dnipro' => [
-        'name' => 'Дніпро (Основний)',
-        'status' => 'online',
-        'uptime' => '99.9%',
-        'response_time' => '12ms',
-        'load' => '23%'
-    ],
-    'kyiv' => [
-        'name' => 'Київ (Резервний)',
-        'status' => 'online',
-        'uptime' => '99.8%',
-        'response_time' => '15ms',
-        'load' => '18%'
-    ],
-    'lviv' => [
-        'name' => 'Одеса (Додатковий)',
-        'status' => 'maintenance',
-        'uptime' => '99.7%',
-        'response_time' => '18ms',
-        'load' => '0%'
-    ]
-];
+// Статус серверів - отримуємо з системи мониторинга
+$server_status = [];
+
+try {
+    // Підключаємо систему мониторинга
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/monitoring/ServerMonitor.php';
+
+    $monitor = new ServerMonitor();
+    $monitoring_data = $monitor->getSimpleStatus();
+
+    // Конвертуємо дані мониторинга в формат для відображення
+    if (isset($monitoring_data['servers']) && is_array($monitoring_data['servers'])) {
+        foreach ($monitoring_data['servers'] as $server) {
+            $status = 'offline';
+            if ($server['online']) {
+                $status = $server['status'] === 'online' ? 'online' : 'maintenance';
+            }
+
+            // Визначаємо метрики залежно від типу сервера
+            $response_time = 'N/A';
+            $load = 'N/A';
+            $uptime = 'N/A';
+
+            if ($server['type'] === 'ISPManager' || $server['type'] === 'Proxmox') {
+                $load = isset($server['cpu']) ? round($server['cpu']) . '%' : 'N/A';
+                $uptime = isset($server['uptime']) ? $server['uptime'] . '%' : 'N/A';
+                $response_time = '<5ms';
+            } elseif ($server['type'] === 'HAProxy') {
+                $load = isset($server['sessions']) ? $server['sessions'] . ' sess' : 'N/A';
+                $uptime = isset($server['backends_up'], $server['backends_total'])
+                    ? $server['backends_up'] . '/' . $server['backends_total'] . ' BE'
+                    : 'N/A';
+                $response_time = '<2ms';
+            } elseif ($server['type'] === 'Network') {
+                $load = isset($server['usage']) ? round($server['usage']) . '%' : 'N/A';
+                $uptime = isset($server['rx_rate']) ? $server['rx_rate'] : 'N/A';
+                $response_time = isset($server['tx_rate']) ? $server['tx_rate'] : 'N/A';
+            }
+
+            $server_status[$server['id']] = [
+                'name' => $server['name'],
+                'status' => $status,
+                'uptime' => $uptime,
+                'response_time' => $response_time,
+                'load' => $load,
+                'type' => $server['type']
+            ];
+        }
+    }
+} catch (Exception $e) {
+    // Якщо помилка - показуємо заглушку
+    error_log("Monitoring error on contacts page: " . $e->getMessage());
+    $server_status = [
+        'placeholder' => [
+            'name' => 'Мониторинг налаштовується',
+            'status' => 'maintenance',
+            'uptime' => 'N/A',
+            'response_time' => 'N/A',
+            'load' => 'N/A'
+        ]
+    ];
+}
+
+// Якщо немає серверів - показуємо повідомлення
+if (empty($server_status)) {
+    $server_status = [
+        'info' => [
+            'name' => 'Система мониторинга',
+            'status' => 'maintenance',
+            'uptime' => 'Налаштування',
+            'response_time' => 'N/A',
+            'load' => 'N/A'
+        ]
+    ];
+}
 
 // Обробка форми зворотного зв'язку
 $success_message = '';
@@ -595,5 +646,96 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
         </div>
     </section>
 </main>
+
+<!-- Скрипт автообновления статуса серверов -->
+<script>
+// Автообновление статуса серверов каждые 30 секунд
+function refreshServerStatus(serverId = null) {
+    fetch('/api/monitoring/status.php?action=all&format=simple')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success || !data.data.servers) {
+                console.warn('Failed to load server status');
+                return;
+            }
+
+            data.data.servers.forEach(server => {
+                const card = document.querySelector(`.status-card[data-server="${server.id}"]`);
+                if (!card) return;
+
+                // Обновляем статус
+                const statusIndicator = card.querySelector('.status-indicator');
+                const statusText = card.querySelector('.status-text');
+                const uptimeValue = card.querySelector('.uptime-value');
+                const metrics = card.querySelectorAll('.metric-value');
+
+                const status = server.online && server.status === 'online' ? 'online' :
+                              (server.online ? 'maintenance' : 'offline');
+
+                if (statusIndicator) {
+                    statusIndicator.className = `status-indicator status-${status}`;
+                }
+
+                if (statusText) {
+                    const statusNames = {
+                        'online': 'Онлайн',
+                        'offline': 'Офлайн',
+                        'maintenance': 'Обслуговування'
+                    };
+                    statusText.textContent = statusNames[status] || status;
+                }
+
+                // Обновляем метрики
+                if (server.type === 'ISPManager' || server.type === 'Proxmox') {
+                    if (uptimeValue) {
+                        uptimeValue.textContent = server.uptime ? server.uptime + '%' : 'N/A';
+                    }
+                    if (metrics[0]) {
+                        metrics[0].textContent = '<5ms';
+                    }
+                    if (metrics[1]) {
+                        metrics[1].textContent = server.cpu ? Math.round(server.cpu) + '%' : 'N/A';
+                    }
+                } else if (server.type === 'HAProxy') {
+                    if (uptimeValue) {
+                        uptimeValue.textContent = server.backends_up && server.backends_total ?
+                            `${server.backends_up}/${server.backends_total} BE` : 'N/A';
+                    }
+                    if (metrics[0]) {
+                        metrics[0].textContent = '<2ms';
+                    }
+                    if (metrics[1]) {
+                        metrics[1].textContent = server.sessions ? server.sessions + ' sess' : 'N/A';
+                    }
+                } else if (server.type === 'Network') {
+                    if (uptimeValue) {
+                        uptimeValue.textContent = server.rx_rate || 'N/A';
+                    }
+                    if (metrics[0]) {
+                        metrics[0].textContent = server.tx_rate || 'N/A';
+                    }
+                    if (metrics[1]) {
+                        metrics[1].textContent = server.usage ? Math.round(server.usage) + '%' : 'N/A';
+                    }
+                }
+            });
+
+            console.log('Server status updated at ' + new Date().toLocaleTimeString());
+        })
+        .catch(error => {
+            console.error('Error refreshing server status:', error);
+        });
+}
+
+// Запускаем автообновление при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновляем каждые 30 секунд
+    setInterval(refreshServerStatus, 30000);
+
+    // Кнопка ручного обновления
+    window.refreshServerStatus = refreshServerStatus;
+});
+</script>
+
 <script src="/assets/js/contacts.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
