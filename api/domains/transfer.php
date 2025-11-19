@@ -70,22 +70,48 @@ if (count($domain_parts) > 2 && in_array(end($domain_parts), ['ua'])) {
     $zone = '.' . $domain_parts[count($domain_parts)-2] . '.ua';
 }
 
-// Таблица цен на трансфер
-$transfer_prices = [
-    '.ua' => 180,
-    '.com.ua' => 130,
-    '.kiev.ua' => 160,
-    '.net.ua' => 160,
-    '.org.ua' => 160,
-    '.com' => 300,
-    '.net' => 400,
-    '.org' => 350,
-    '.info' => 300,
-    '.biz' => 300
-];
+// Получаем цену из БД
+$price = 400; // Default fallback
 
-// Определяем цену
-$price = $transfer_prices[$zone] ?? 400;
+try {
+    $db_path = $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
+    if (file_exists($db_path)) {
+        require_once $db_path;
+
+        if (isset($pdo)) {
+            $stmt = $pdo->prepare("
+                SELECT price_transfer
+                FROM domain_zones
+                WHERE zone = ? AND is_active = 1 AND price_transfer > 0
+                LIMIT 1
+            ");
+            $stmt->execute([$zone]);
+            $zone_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($zone_data) {
+                $price = $zone_data['price_transfer'];
+            }
+        }
+    }
+} catch (Exception $e) {
+    error_log('Transfer price DB error: ' . $e->getMessage());
+
+    // Fallback prices if DB is not available
+    $transfer_prices = [
+        '.ua' => 180,
+        '.com.ua' => 130,
+        '.kiev.ua' => 160,
+        '.net.ua' => 160,
+        '.org.ua' => 160,
+        '.com' => 300,
+        '.net' => 400,
+        '.org' => 350,
+        '.info' => 300,
+        '.biz' => 300
+    ];
+
+    $price = $transfer_prices[$zone] ?? 400;
+}
 
 // Сохраняем заявку в базу данных (если доступно)
 $request_id = null;

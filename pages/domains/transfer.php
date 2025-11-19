@@ -21,19 +21,44 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
 include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
 
-// Ціни на трансфер
-$transfer_prices = [
-    '.ua' => ['price' => 180, 'currency' => 'грн'],
-    '.com.ua' => ['price' => 130, 'currency' => 'грн'],
-    '.kiev.ua' => ['price' => 160, 'currency' => 'грн'],
-    '.net.ua' => ['price' => 160, 'currency' => 'грн'],
-    '.org.ua' => ['price' => 160, 'currency' => 'грн'],
-    '.com' => ['price' => 300, 'currency' => 'грн'],
-    '.net' => ['price' => 400, 'currency' => 'грн'],
-    '.org' => ['price' => 350, 'currency' => 'грн'],
-    '.info' => ['price' => 300, 'currency' => 'грн'],
-    '.biz' => ['price' => 300, 'currency' => 'грн']
-];
+// Отримуємо ціни з БД
+$transfer_prices = [];
+try {
+    if (defined('DB_AVAILABLE') && DB_AVAILABLE && isset($pdo)) {
+        $stmt = $pdo->query("
+            SELECT zone, price_transfer, price_renewal
+            FROM domain_zones
+            WHERE is_active = 1 AND price_transfer > 0
+            ORDER BY zone LIKE '%.ua' DESC, price_transfer ASC
+        ");
+        $zones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($zones as $z) {
+            $transfer_prices[$z['zone']] = [
+                'price' => $z['price_transfer'],
+                'currency' => 'грн'
+            ];
+        }
+    }
+} catch (Exception $e) {
+    error_log('Transfer prices DB error: ' . $e->getMessage());
+}
+
+// Fallback ціни, якщо БД недоступна
+if (empty($transfer_prices)) {
+    $transfer_prices = [
+        '.ua' => ['price' => 180, 'currency' => 'грн'],
+        '.com.ua' => ['price' => 130, 'currency' => 'грн'],
+        '.kiev.ua' => ['price' => 160, 'currency' => 'грн'],
+        '.net.ua' => ['price' => 160, 'currency' => 'грн'],
+        '.org.ua' => ['price' => 160, 'currency' => 'грн'],
+        '.com' => ['price' => 300, 'currency' => 'грн'],
+        '.net' => ['price' => 400, 'currency' => 'грн'],
+        '.org' => ['price' => 350, 'currency' => 'грн'],
+        '.info' => ['price' => 300, 'currency' => 'грн'],
+        '.biz' => ['price' => 300, 'currency' => 'грн']
+    ];
+}
 ?>
 
 <!-- Transfer Hero Section -->
