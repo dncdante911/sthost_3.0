@@ -277,13 +277,11 @@ includes/
 └── functions.php         # Helper functions
 ```
 
-### Configuration (`/config/`)
+### Configuration
 
-```
-config/
-├── whmcs.php             # WHMCS API configuration
-└── proxmox.php           # Proxmox API configuration
-```
+Configuration is managed through:
+- `/includes/config.php` - Main site configuration with database, Proxmox, and WHMCS settings
+- `/includes/classes/ProxmoxManager.php` - Proxmox VE 9 integration class (fully configured)
 
 ---
 
@@ -561,716 +559,241 @@ try {
 
 ---
 
-## 💳 WHMCS Integration
+## 💳 WHMCS / FossBilling Integration
 
 ### Overview
 
-WHMCS (Web Host Manager Complete Solution) is a billing and client management platform. This integration allows:
+The platform integrates with WHMCS/FossBilling for billing and client management:
 
-- Automated invoice generation for domain transfers
+- Automated invoice generation
 - Payment processing
 - Client account synchronization
 - Service provisioning
 
-### Configuration File
+### Configuration
 
-**Location**: `/config/whmcs.php`
-
-```php
-<?php
-return [
-    // WHMCS API Configuration
-    'api' => [
-        'enabled' => true,              // Enable/disable integration
-        'url' => 'https://bill.sthost.pro',  // Your WHMCS installation URL
-        'identifier' => 'YOUR_API_IDENTIFIER',  // See below how to get
-        'secret' => 'YOUR_API_SECRET',          // See below how to get
-        'access_key' => '',                     // Optional, for IP restriction
-    ],
-
-    // WHMCS Product IDs
-    'products' => [
-        'domain_registration' => 1,     // Product ID for domain registration
-        'domain_transfer' => 2,         // Product ID for domain transfer
-        'domain_renewal' => 3,          // Product ID for domain renewal
-    ],
-
-    // Auto-redirect settings
-    'redirect' => [
-        'enabled' => true,
-        'cart_url' => 'https://bill.sthost.pro/cart.php',
-        'domain_transfer_action' => 'a=add&domain=transfer',
-    ],
-
-    // Price synchronization
-    'prices' => [
-        'sync_enabled' => true,         // Sync prices from WHMCS
-        'sync_interval' => 3600,        // Sync every hour
-        'cache_file' => __DIR__ . '/../cache/whmcs_prices.json',
-    ],
-
-    // Webhook settings
-    'webhooks' => [
-        'enabled' => true,
-        'secret' => 'RANDOM_SECRET_KEY_HERE',  // Generate secure random key
-        'events' => [
-            'DomainTransferCompleted',
-            'DomainTransferFailed',
-            'DomainRegistered',
-        ],
-    ],
-
-    // Logging
-    'logging' => [
-        'enabled' => true,
-        'file' => __DIR__ . '/../logs/whmcs.log',
-        'level' => 'info',              // debug, info, warning, error
-    ],
-];
-```
-
-### Getting WHMCS API Credentials
-
-#### Step 1: Generate API Credentials
-
-1. Log into your WHMCS admin panel
-2. Navigate to: **Setup → Staff Management → API Credentials**
-3. Click **"Generate New API Credential"**
-4. Fill in the form:
-   - **Credential Name**: "StHost Website Integration"
-   - **Generated Credential**: Copy the **Identifier** and **Secret**
-5. Under **API Access Control**:
-   - Add your website IP address (e.g., `192.168.1.100`)
-   - Or use `0.0.0.0/0` for testing (NOT recommended for production)
-6. Click **"Save Changes"**
-
-#### Step 2: Update Configuration
-
-Edit `/config/whmcs.php`:
+WHMCS/FossBilling is configured through constants in `/includes/config.php` and environment variables:
 
 ```php
-'api' => [
-    'enabled' => true,
-    'url' => 'https://bill.sthost.pro',          // Your WHMCS URL
-    'identifier' => 'AbCdEfGh123456',             // From Step 1
-    'secret' => 'xYz789AbCdEf....',               // From Step 1
-],
+// In /includes/config.php
+define('WHMCS_URL', 'https://bill.sthost.pro');
+define('WHMCS_API_ENABLED', true);
+
+// In .env file (recommended for security)
+FOSSBILLING_API_KEY=your_api_key_here
 ```
 
-### Getting Product IDs
+**Integration Points:**
 
-#### Option 1: Via WHMCS Admin
+1. **VPS List API** (`/api/vps/get_list.php`) - Fetches VPS orders from FossBilling
+2. **Client Synchronization** - Maps WHMCS client IDs to local users
+3. **Payment Links** - Redirects to billing portal for payments
 
-1. Go to: **Setup → Products/Services → Products/Services**
-2. Find your domain transfer product
-3. Click **Edit**
-4. Look at the URL: `configproducts.php?action=edit&id=2`
-5. The number after `id=` is your Product ID (e.g., `2`)
+### How to Configure FossBilling API
 
-#### Option 2: Via Database
+1. **Get API Key:**
+   - Login to FossBilling admin panel: `https://bill.sthost.pro/admin`
+   - Navigate to: **System → Settings → API**
+   - Generate new API key
+   - Copy the key
 
-```sql
-SELECT id, name, type
-FROM tblproducts
-WHERE type = 'domain';
-```
+2. **Configure Environment Variable:**
 
-Update in `/config/whmcs.php`:
+   Create `/home/user/sthost_3.0/.env` (if not exists):
+
+   ```bash
+   FOSSBILLING_API_KEY=your_api_key_here
+   ```
+
+3. **Usage in Code:**
+
+   The API key is loaded via `env()` function:
+
+   ```php
+   $api_key = env('FOSSBILLING_API_KEY', '');
+   ```
+
+### Integration Usage
+
+**VPS List Fetching** (`/api/vps/get_list.php`):
 
 ```php
-'products' => [
-    'domain_registration' => 1,   // ID from WHMCS
-    'domain_transfer' => 2,       // ID from WHMCS
-    'domain_renewal' => 3,        // ID from WHMCS
-],
+// Get VPS orders from FossBilling
+$api_url = 'https://bill.sthost.pro/api/admin/order/get_list';
+$params = ['client_id' => $fossbilling_client_id];
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $api_url . '?key=' . $api_key);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
+$response = curl_exec($ch);
+```
+
+**Client Synchronization:**
+
+Users table includes `whmcs_client_id` field that maps to FossBilling client ID:
+
+```php
+$fossbilling_client_id = getFossBillingClientId(); // From session
+```
+
+### Testing FossBilling Integration
+
+```bash
+# Test API connection
+curl -X POST "https://bill.sthost.pro/api/admin/order/get_list?key=YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"client_id": 1}'
+```
+
+---
+
+## 🖥️ Proxmox VE 9 Integration
+
+### Overview
+
+**Proxmox integration is ALREADY FULLY CONFIGURED and working!**
+
+The platform uses `/includes/classes/ProxmoxManager.php` (700+ lines) for complete VPS management:
+
+- ✅ Automated VPS provisioning
+- ✅ VM/Container management (start/stop/restart/delete)
+- ✅ Resource monitoring and usage statistics
+- ✅ Template-based deployment
+- ✅ Snapshot creation and management
+- ✅ VNC console access
+- ✅ Disk and RAM resizing
+
+### Configuration
+
+Proxmox is configured through constants in `/includes/config.php`:
+
+```php
+// Proxmox VE 9 Configuration
+define('PROXMOX_HOST', 'proxmox.sthost.pro');
+define('PROXMOX_PORT', 8006);
+define('PROXMOX_NODE', 'pve');
+define('PROXMOX_USER', 'root');
+define('PROXMOX_REALM', 'pam');
+define('PROXMOX_PASSWORD', 'your_password'); // OR use token (recommended)
+define('PROXMOX_TOKEN_ID', 'root@pam!api-token-id');
+define('PROXMOX_TOKEN_SECRET', 'your_token_secret');
+define('PROXMOX_VERIFY_SSL', false); // Set true in production
+```
+
+### How to Get API Token
+
+1. Open Proxmox web interface: `https://proxmox.sthost.pro:8006`
+2. Navigate to: **Datacenter → Permissions → API Tokens**
+3. Click **"Add"**
+4. Fill in:
+   - **User**: `root@pam`
+   - **Token ID**: `api-token-sthost`
+   - **Privilege Separation**: ✅ **Uncheck**
+5. Copy the **Token ID** and **Secret** immediately
+6. Update constants in `/includes/config.php`
+
+### ProxmoxManager Class Usage
+
+The `ProxmoxManager` class is already integrated into VPS APIs:
+
+**Available Methods:**
+- `createVPS($config)` - Create new VM/CT
+- `controlVPS($vmid, $action)` - Start/stop/restart/reset
+- `getVPSStatus($vmid)` - Get current status and resources
+- `deleteVPS($vmid)` - Delete VM/CT
+- `getVNCInfo($vmid)` - Get VNC console access
+- `reinstallVPS($vmid, $template_id)` - Reinstall from template
+- `createSnapshot($vmid, $name)` - Create backup snapshot
+- `resizeRAM($vmid, $new_mb)` - Change RAM allocation
+- `resizeDisk($vmid, $disk, $size_gb)` - Expand disk
+- `getResourceUsage($vmid)` - CPU/RAM/disk usage
+- `listAllVPS()` - List all VMs/CTs
+- `getTemplates()` - List available templates
+
+**Example Usage:**
+
+```php
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/classes/ProxmoxManager.php';
+
+$proxmox = new ProxmoxManager();
+
+// Authenticate
+if (!$proxmox->authenticate()) {
+    die('Authentication failed');
+}
+
+// Create VPS
+$result = $proxmox->createVPS([
+    'name' => 'web-server-01',
+    'memory' => 4096,
+    'cpu_cores' => 2,
+    'disk_size' => 50,
+    'os_template' => 'ubuntu',
+    'ip_address' => '192.168.1.100',
+    'gateway' => '192.168.1.1'
+]);
+
+// Start VPS
+$proxmox->controlVPS($vmid, 'start');
+
+// Get status
+$status = $proxmox->getVPSStatus($vmid);
+echo "CPU Usage: {$status['cpu_usage']}%\n";
 ```
 
 ### Integration Points
 
-#### 1. Domain Transfer Integration
+#### VPS Control API (`/api/vps/control.php`)
 
-**File**: `/api/domains/transfer.php`
-
-Add WHMCS order creation:
+Already configured to use ProxmoxManager for start/stop/restart operations.
 
 ```php
-// After successful transfer request submission
-if (file_exists($_SERVER['DOCUMENT_ROOT'] . '/config/whmcs.php')) {
-    $whmcs_config = require $_SERVER['DOCUMENT_ROOT'] . '/config/whmcs.php';
-
-    if ($whmcs_config['api']['enabled']) {
-        // Create WHMCS order
-        $whmcs_result = createWHMCSOrder([
-            'clientid' => getOrCreateWHMCSClient($client_email, $client_name),
-            'pid' => $whmcs_config['products']['domain_transfer'],
-            'domain' => $domain,
-            'billingcycle' => 'annually',
-            'paymentmethod' => 'banktransfer'
-        ]);
-
-        // Redirect to WHMCS cart
-        if ($whmcs_config['redirect']['enabled'] && $whmcs_result['success']) {
-            $redirect_url = $whmcs_config['redirect']['cart_url']
-                          . '?' . $whmcs_config['redirect']['domain_transfer_action']
-                          . '&domain=' . urlencode($domain);
-        }
-    }
-}
+$proxmox = new ProxmoxManager();
+$result = $proxmox->controlVPS($proxmox_vmid, $action, $proxmox_node);
 ```
 
-#### 2. WHMCS API Helper Function
+#### VPS Deletion API (`/api/vps/delete.php`)
 
-Create `/includes/whmcs_api.php`:
+Handles VM deletion through Proxmox and database cleanup.
 
 ```php
-<?php
-function whmcsAPI($command, $params = []) {
-    $config = require $_SERVER['DOCUMENT_ROOT'] . '/config/whmcs.php';
-
-    if (!$config['api']['enabled']) {
-        return ['result' => 'error', 'message' => 'WHMCS API disabled'];
-    }
-
-    $post_data = array_merge([
-        'identifier' => $config['api']['identifier'],
-        'secret' => $config['api']['secret'],
-        'action' => $command,
-        'responsetype' => 'json',
-    ], $params);
-
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $config['api']['url'] . '/includes/api.php');
-    curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
-
-    $response = curl_exec($ch);
-
-    if (curl_error($ch)) {
-        error_log('WHMCS API Error: ' . curl_error($ch));
-        return ['result' => 'error', 'message' => curl_error($ch)];
-    }
-
-    curl_close($ch);
-
-    return json_decode($response, true);
-}
-
-function createWHMCSOrder($params) {
-    return whmcsAPI('AddOrder', $params);
-}
-
-function getOrCreateWHMCSClient($email, $name) {
-    // Check if client exists
-    $result = whmcsAPI('GetClientsDetails', ['email' => $email]);
-
-    if ($result['result'] == 'success') {
-        return $result['client']['id'];
-    }
-
-    // Create new client
-    $name_parts = explode(' ', $name, 2);
-    $create_result = whmcsAPI('AddClient', [
-        'firstname' => $name_parts[0],
-        'lastname' => $name_parts[1] ?? '',
-        'email' => $email,
-        'password2' => bin2hex(random_bytes(16)),
-    ]);
-
-    return $create_result['clientid'] ?? null;
-}
+$proxmox = new ProxmoxManager();
+$result = $proxmox->deleteVPS($proxmox_vmid);
 ```
 
-### Testing WHMCS Integration
+#### Client VPS Panel (`/client/vps.php`)
 
-#### Test API Connection
-
-Create `/test/whmcs_test.php`:
-
-```php
-<?php
-require_once '../includes/whmcs_api.php';
-
-// Test GetOrders
-$result = whmcsAPI('GetOrders', ['limitnum' => 1]);
-
-echo "<pre>";
-print_r($result);
-echo "</pre>";
-
-if ($result['result'] == 'success') {
-    echo "✅ WHMCS API connection successful!";
-} else {
-    echo "❌ WHMCS API connection failed: " . $result['message'];
-}
-```
-
-Access: `https://sthost.pro/test/whmcs_test.php`
-
-### Webhook Configuration (Optional)
-
-To receive notifications from WHMCS when transfers complete:
-
-#### 1. Create Webhook Endpoint
-
-**File**: `/api/webhooks/whmcs.php`
-
-```php
-<?php
-define('SECURE_ACCESS', true);
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
-
-$config = require $_SERVER['DOCUMENT_ROOT'] . '/config/whmcs.php';
-
-// Verify webhook secret
-$headers = getallheaders();
-$signature = $headers['X-WHMCS-Signature'] ?? '';
-
-if (!hash_equals($config['webhooks']['secret'], $signature)) {
-    http_response_code(403);
-    exit('Invalid signature');
-}
-
-// Parse webhook data
-$event = $_POST['event'] ?? '';
-$data = $_POST;
-
-// Log webhook
-error_log("WHMCS Webhook: $event - " . json_encode($data));
-
-// Handle events
-switch ($event) {
-    case 'DomainTransferCompleted':
-        $domain = $data['domain'];
-        // Update database
-        $stmt = $pdo->prepare("
-            UPDATE domain_transfer_requests
-            SET status = 'completed'
-            WHERE domain = ?
-        ");
-        $stmt->execute([$domain]);
-        break;
-
-    case 'DomainTransferFailed':
-        $domain = $data['domain'];
-        $stmt = $pdo->prepare("
-            UPDATE domain_transfer_requests
-            SET status = 'failed', notes = ?
-            WHERE domain = ?
-        ");
-        $stmt->execute([$data['reason'], $domain]);
-        break;
-}
-
-http_response_code(200);
-echo json_encode(['success' => true]);
-```
-
-#### 2. Configure in WHMCS
-
-1. Go to: **Setup → Automation Settings → Webhook Configuration**
-2. Click **"Add New Webhook"**
-3. Fill in:
-   - **URL**: `https://sthost.pro/api/webhooks/whmcs.php`
-   - **Events**: Select `DomainTransferCompleted`, `DomainTransferFailed`
-   - **Secret**: Copy your secret from `/config/whmcs.php`
-4. Save
-
----
-
-## 🖥️ Proxmox Integration
-
-### Overview
-
-Proxmox Virtual Environment (VE) is an open-source virtualization platform. This integration allows:
-
-- Automated VPS provisioning
-- VM/Container management
+Fully functional interface for:
+- Viewing VPS list
+- Starting/stopping servers
+- VNC console access
 - Resource monitoring
-- Template-based deployment
+- VPS deletion
 
-### Configuration File
+### Testing
 
-**Location**: `/config/proxmox.php`
-
-```php
-<?php
-return [
-    // Proxmox API Configuration
-    'api' => [
-        'enabled' => true,                      // Enable/disable integration
-        'host' => 'proxmox.sthost.pro',         // Proxmox hostname/IP
-        'port' => 8006,                         // API port (usually 8006)
-        'node' => 'pve',                        // Node name (default: pve)
-        'realm' => 'pam',                       // Authentication realm (pam/pve)
-        'verify_ssl' => true,                   // Verify SSL certificate
-    ],
-
-    // Authentication
-    'auth' => [
-        'method' => 'token',                    // 'token' (recommended) or 'password'
-
-        // For method = 'token'
-        'token_id' => 'root@pam!api-token-id',  // See below how to generate
-        'token_secret' => 'YOUR_TOKEN_SECRET',  // See below how to generate
-
-        // For method = 'password' (NOT recommended for production)
-        'username' => 'root@pam',
-        'password' => '',
-    ],
-
-    // VM/CT Defaults
-    'defaults' => [
-        'storage' => 'local-lvm',               // Storage for disks
-        'network_bridge' => 'vmbr0',            // Network bridge
-        'nameserver' => '8.8.8.8 8.8.4.4',      // DNS servers
-        'searchdomain' => 'sthost.pro',
-        'ostype' => 'l26',                      // OS type (l26 for Linux 2.6+)
-    ],
-
-    // Templates
-    'templates' => [
-        'ubuntu_22_04' => [
-            'name' => 'Ubuntu 22.04 LTS',
-            'template_id' => 9000,              // Template VMID
-            'type' => 'lxc',                    // lxc or qemu
-            'min_disk' => 8,                    // GB
-            'min_ram' => 512,                   // MB
-        ],
-        'debian_12' => [
-            'name' => 'Debian 12',
-            'template_id' => 9001,
-            'type' => 'lxc',
-            'min_disk' => 8,
-            'min_ram' => 512,
-        ],
-        'centos_stream_9' => [
-            'name' => 'CentOS Stream 9',
-            'template_id' => 9002,
-            'type' => 'lxc',
-            'min_disk' => 10,
-            'min_ram' => 1024,
-        ],
-    ],
-
-    // Limits and Quotas
-    'limits' => [
-        'max_vm_per_user' => 5,
-        'max_cpu_cores' => 8,
-        'max_ram_mb' => 16384,                  // 16 GB
-        'max_disk_gb' => 500,
-    ],
-
-    // Backup Configuration
-    'backup' => [
-        'enabled' => true,
-        'storage' => 'backup-storage',
-        'retention' => 7,                       // Days to keep backups
-        'schedule' => '02:00',                  // Backup time (HH:MM)
-    ],
-
-    // Logging
-    'logging' => [
-        'enabled' => true,
-        'file' => __DIR__ . '/../logs/proxmox.log',
-        'level' => 'info',
-    ],
-];
-```
-
-### Generating Proxmox API Token
-
-#### Step 1: Access Proxmox Web Interface
-
-1. Open browser: `https://proxmox.sthost.pro:8006`
-2. Login with root credentials
-
-#### Step 2: Create API Token
-
-1. Navigate to: **Datacenter → Permissions → API Tokens**
-2. Click **"Add"**
-3. Fill in:
-   - **User**: `root@pam`
-   - **Token ID**: `api-token-sthost` (choose any name)
-   - **Privilege Separation**: ✅ **Uncheck** (token will have same permissions as user)
-4. Click **"Add"**
-5. **IMPORTANT**: Copy the **Secret** immediately (shown only once!)
-
-Example output:
-```
-Token ID: root@pam!api-token-sthost
-Secret: 12345678-1234-1234-1234-123456789abc
-```
-
-#### Step 3: Update Configuration
-
-Edit `/config/proxmox.php`:
-
-```php
-'auth' => [
-    'method' => 'token',
-    'token_id' => 'root@pam!api-token-sthost',          // From Step 2
-    'token_secret' => '12345678-1234-1234-1234-123456789abc',  // From Step 2
-],
-```
-
-### Creating VM Templates
-
-Before provisioning, you need to create templates in Proxmox.
-
-#### Option 1: LXC Container Template (Recommended)
+Test Proxmox connection:
 
 ```bash
-# SSH into Proxmox node
-ssh root@proxmox.sthost.pro
-
-# Download Ubuntu 22.04 template
-pveam update
-pveam download local ubuntu-22.04-standard_22.04-1_amd64.tar.zst
-
-# Create container from template
-pct create 9000 local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst \
-    --hostname ubuntu-template \
-    --memory 512 \
-    --net0 name=eth0,bridge=vmbr0,ip=dhcp \
-    --storage local-lvm \
-    --rootfs local-lvm:8
-
-# Convert to template
-pct template 9000
-```
-
-#### Option 2: QEMU VM Template
-
-```bash
-# Download Ubuntu cloud image
-wget https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
-
-# Create VM
-qm create 9000 \
-    --name ubuntu-22.04-template \
-    --memory 2048 \
-    --net0 virtio,bridge=vmbr0 \
-    --scsihw virtio-scsi-pci
-
-# Import disk
-qm importdisk 9000 jammy-server-cloudimg-amd64.img local-lvm
-
-# Attach disk
-qm set 9000 --scsi0 local-lvm:vm-9000-disk-0
-
-# Set boot order
-qm set 9000 --boot c --bootdisk scsi0
-
-# Add cloud-init
-qm set 9000 --ide2 local-lvm:cloudinit
-
-# Convert to template
-qm template 9000
-```
-
-### Integration Implementation
-
-#### Proxmox API Helper
-
-Create `/includes/proxmox_api.php`:
-
-```php
+# Create test file
+cat > /tmp/test_proxmox.php << 'EOF'
 <?php
-class ProxmoxAPI {
-    private $config;
-    private $ticket;
-    private $csrf_token;
+require_once '/var/www/sthost_3.0/includes/config.php';
+require_once '/var/www/sthost_3.0/includes/classes/ProxmoxManager.php';
 
-    public function __construct() {
-        $this->config = require $_SERVER['DOCUMENT_ROOT'] . '/config/proxmox.php';
-    }
+$proxmox = new ProxmoxManager();
 
-    private function getAuthHeaders() {
-        if ($this->config['auth']['method'] == 'token') {
-            return [
-                'Authorization: PVEAPIToken=' . $this->config['auth']['token_id']
-                    . '=' . $this->config['auth']['token_secret']
-            ];
-        } else {
-            // Password-based auth (requires login first)
-            return [
-                'CSRFPreventionToken: ' . $this->csrf_token,
-                'Cookie: PVEAuthCookie=' . $this->ticket
-            ];
-        }
-    }
-
-    public function request($endpoint, $method = 'GET', $data = []) {
-        $url = 'https://' . $this->config['api']['host']
-             . ':' . $this->config['api']['port']
-             . '/api2/json' . $endpoint;
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $this->config['api']['verify_ssl']);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->getAuthHeaders());
-
-        if ($method == 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        } elseif ($method == 'DELETE') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        }
-
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($http_code >= 400) {
-            throw new Exception("Proxmox API error: HTTP $http_code");
-        }
-
-        return json_decode($response, true);
-    }
-
-    public function createContainer($params) {
-        $node = $this->config['api']['node'];
-        $vmid = $this->getNextVMID();
-
-        $data = array_merge([
-            'vmid' => $vmid,
-            'ostemplate' => 'local:vztmpl/ubuntu-22.04-standard.tar.zst',
-            'hostname' => 'ct-' . $vmid,
-            'memory' => 512,
-            'swap' => 512,
-            'cores' => 1,
-            'storage' => $this->config['defaults']['storage'],
-            'net0' => 'name=eth0,bridge=' . $this->config['defaults']['network_bridge'] . ',ip=dhcp',
-            'nameserver' => $this->config['defaults']['nameserver'],
-            'password' => bin2hex(random_bytes(16)),
-        ], $params);
-
-        return $this->request("/nodes/$node/lxc", 'POST', $data);
-    }
-
-    public function getNextVMID() {
-        $result = $this->request('/cluster/nextid');
-        return $result['data'];
-    }
-
-    public function getVMStatus($vmid) {
-        $node = $this->config['api']['node'];
-        return $this->request("/nodes/$node/lxc/$vmid/status/current");
-    }
-
-    public function startVM($vmid) {
-        $node = $this->config['api']['node'];
-        return $this->request("/nodes/$node/lxc/$vmid/status/start", 'POST');
-    }
-
-    public function stopVM($vmid) {
-        $node = $this->config['api']['node'];
-        return $this->request("/nodes/$node/lxc/$vmid/status/stop", 'POST');
-    }
-}
-```
-
-#### VPS Provisioning API
-
-**File**: `/api/vps/provision.php`
-
-```php
-<?php
-define('SECURE_ACCESS', true);
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/db_connect.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/proxmox_api.php';
-
-header('Content-Type: application/json');
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    exit(json_encode(['error' => 'Method not allowed']));
-}
-
-// Validate input
-$hostname = trim($_POST['hostname'] ?? '');
-$cpu = (int)($_POST['cpu'] ?? 1);
-$ram = (int)($_POST['ram'] ?? 512);
-$disk = (int)($_POST['disk'] ?? 10);
-$template = $_POST['template'] ?? 'ubuntu_22_04';
-$user_id = $_SESSION['user_id'] ?? null;
-
-if (!$user_id) {
-    exit(json_encode(['error' => 'Authentication required']));
-}
-
-try {
-    $proxmox = new ProxmoxAPI();
-    $config = require $_SERVER['DOCUMENT_ROOT'] . '/config/proxmox.php';
-
-    // Check limits
-    if ($cpu > $config['limits']['max_cpu_cores']) {
-        throw new Exception('CPU limit exceeded');
-    }
-
-    // Create container
-    $result = $proxmox->createContainer([
-        'hostname' => $hostname,
-        'cores' => $cpu,
-        'memory' => $ram,
-        'rootfs' => $config['defaults']['storage'] . ':' . $disk,
-    ]);
-
-    $vmid = $result['data'];
-
-    // Save to database
-    $stmt = $pdo->prepare("
-        INSERT INTO vps_instances
-        (user_id, proxmox_vmid, hostname, cpu_cores, ram_mb, disk_gb, os_template, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'active')
-    ");
-    $stmt->execute([$user_id, $vmid, $hostname, $cpu, $ram, $disk, $template]);
-
-    // Start container
-    $proxmox->startVM($vmid);
-
-    echo json_encode([
-        'success' => true,
-        'vmid' => $vmid,
-        'hostname' => $hostname
-    ]);
-
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
-}
-```
-
-### Testing Proxmox Integration
-
-Create `/test/proxmox_test.php`:
-
-```php
-<?php
-require_once '../includes/proxmox_api.php';
-
-try {
-    $proxmox = new ProxmoxAPI();
-
-    // Test: Get cluster status
-    $result = $proxmox->request('/cluster/status');
-
-    echo "<pre>";
+if ($proxmox->authenticate()) {
+    echo "✅ Proxmox connection successful!\n";
+    $result = $proxmox->listAllVPS();
     print_r($result);
-    echo "</pre>";
-
-    echo "✅ Proxmox API connection successful!";
-
-} catch (Exception $e) {
-    echo "❌ Proxmox API connection failed: " . $e->getMessage();
+} else {
+    echo "❌ Proxmox connection failed\n";
 }
+EOF
+
+php /tmp/test_proxmox.php
 ```
 
 ---

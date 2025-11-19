@@ -587,6 +587,7 @@ $page_title = 'Управління VPS - STHost';
 
     <script>
         let vpsServers = [];
+        const CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
 
         // Toggle sidebar
         function toggleSidebar() {
@@ -718,7 +719,7 @@ $page_title = 'Управління VPS - STHost';
             if (!confirm(`Ви впевнені що хочете виконати дію: ${action}?`)) {
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/vps/control.php', {
                     method: 'POST',
@@ -727,7 +728,8 @@ $page_title = 'Управління VPS - STHost';
                     },
                     body: JSON.stringify({
                         server_id: serverId,
-                        action: action
+                        action: action,
+                        csrf_token: CSRF_TOKEN
                     })
                 });
                 

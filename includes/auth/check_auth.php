@@ -126,6 +126,31 @@ function checkRememberToken() {
     }
 }
 
+/**
+ * Генерація або отримання CSRF токену
+ */
+function getCsrfToken() {
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Перевірка CSRF токену
+ */
+function verifyCsrfToken($token) {
+    if (!isset($_SESSION['csrf_token'])) {
+        return false;
+    }
+    return hash_equals($_SESSION['csrf_token'], $token);
+}
+
 // Автоматична перевірка remember token при завантаженні
 checkRememberToken();
+
+// Генеруємо CSRF токен якщо користувач авторизований
+if (isLoggedIn()) {
+    getCsrfToken();
+}
 ?>
