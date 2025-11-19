@@ -604,67 +604,18 @@ try {
 
 <script>
 // ========================================
-// WHMCS Transfer Configuration
-// ========================================
-window.transferConfig = {
-    whmcs: {
-        billingUrl: '<?php echo $whmcs_config['billing_url']; ?>',
-        directCheckout: <?php echo $whmcs_config['direct_checkout'] ? 'true' : 'false'; ?>
-    },
-    supportedZones: <?php echo json_encode(array_column($transferable_zones, 'zone')); ?>,
-    translations: {
-        invalidDomain: 'Невірний формат домену',
-        unsupportedZone: 'Ця доменна зона не підтримується для трансферу',
-        enterDomain: 'Будь ласка, введіть домен',
-        agreeTerms: 'Будь ласка, погодьтеся з умовами'
-    }
-};
-
-// ========================================
-// Transfer Form Handler (WHMCS Integration)
-// ========================================
-function handleTransferSubmit(event) {
-    event.preventDefault();
-
-    const domainInput = document.getElementById('domain');
-    const agreeTerms = document.getElementById('agree_terms');
-
-    const domain = domainInput.value.trim().toLowerCase();
-
-    // Validation
-    if (!domain) {
-        alert(window.transferConfig.translations.enterDomain);
-        domainInput.focus();
-        return false;
-    }
-
-    if (!validateDomainFormat(domain)) {
-        alert(window.transferConfig.translations.invalidDomain);
-        domainInput.focus();
-        return false;
-    }
-
-    if (!agreeTerms.checked) {
-        alert(window.transferConfig.translations.agreeTerms);
-        return false;
-    }
-
-    // Redirect to WHMCS transfer
-    transferDomainToWHMCS(domain);
-    return false;
-}
-
-// ========================================
 // Quick Transfer from Price Table
 // ========================================
 function quickTransfer(zone) {
-    const domain = prompt(`Введіть назву домену для трансферу (без ${zone}):\n\nНаприклад: mycompany`);
+    const domainInput = document.getElementById('domain');
 
-    if (!domain || domain.trim() === '') {
+    const domainName = prompt(`Введіть назву домену для трансферу (без ${zone}):\n\nНаприклад: mycompany`);
+
+    if (!domainName || domainName.trim() === '') {
         return;
     }
 
-    const cleanDomain = domain.trim().toLowerCase();
+    const cleanDomain = domainName.trim().toLowerCase();
 
     // Validate domain name part
     if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(cleanDomain)) {
@@ -673,71 +624,25 @@ function quickTransfer(zone) {
     }
 
     const fullDomain = cleanDomain + zone;
-    transferDomainToWHMCS(fullDomain);
-}
 
-// ========================================
-// WHMCS Transfer Redirect
-// ========================================
-function transferDomainToWHMCS(domain) {
-    const billingUrl = window.transferConfig.whmcs.billingUrl;
-    const transferUrl = `${billingUrl}/cart.php?a=add&domain=transfer&query=${encodeURIComponent(domain)}`;
+    // Fill in the transfer form and scroll to it
+    if (domainInput) {
+        domainInput.value = fullDomain;
+        domainInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Open in new tab
-    window.open(transferUrl, '_blank');
+        // Scroll to form
+        document.getElementById('transfer-form').scrollIntoView({ behavior: 'smooth' });
 
-    // Show success message
-    setTimeout(() => {
-        alert(`✓ Перехід до оформлення трансферу домену: ${domain}\n\nВи будете перенаправлені в систему біллінгу для введення коду авторизації та оплати.`);
-    }, 500);
-}
-
-// ========================================
-// Domain Validation
-// ========================================
-function validateDomainFormat(domain) {
-    // Check basic domain format
-    const domainPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]\.[a-z]{2,}$|^[a-z0-9]\.[a-z]{2,}$/;
-    return domainPattern.test(domain);
+        // Focus on email field
+        setTimeout(() => {
+            document.getElementById('contact_email').focus();
+        }, 500);
+    }
 }
 
 function openChat() {
     alert('Онлайн чат буде доступний незабаром.\n\nНаразі ви можете зв\'язатись з нами:\n• Email: domains@sthost.pro\n• Telegram: @sthost_support');
 }
-
-// ========================================
-// Initialize
-// ========================================
-document.addEventListener('DOMContentLoaded', function() {
-    const domainInput = document.getElementById('domain');
-
-    if (domainInput) {
-        // Real-time validation feedback
-        domainInput.addEventListener('input', function(e) {
-            const domain = e.target.value.toLowerCase().trim();
-
-            if (domain.length === 0) {
-                e.target.classList.remove('is-invalid', 'is-valid');
-                return;
-            }
-
-            const isValid = validateDomainFormat(domain);
-            e.target.classList.toggle('is-invalid', !isValid);
-            e.target.classList.toggle('is-valid', isValid);
-        });
-
-        // Auto-lowercase
-        domainInput.addEventListener('blur', function(e) {
-            e.target.value = e.target.value.toLowerCase().trim();
-        });
-    }
-
-    // Initialize tooltips if Bootstrap is available
-    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltips.forEach(el => new bootstrap.Tooltip(el));
-    }
-});
 </script>
 
  <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
