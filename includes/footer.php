@@ -49,9 +49,9 @@ html, body {
                 <h5 class="fw-bold mb-3">StormHosting UA</h5>
                 <p>Надійний хостинг провайдер для вашого онлайн бізнесу. Ми забезпечуємо стабільну роботу ваших сайтів 24/7.</p>
                 <div class="d-flex gap-3">
-                    <a href="#" class="text-light"><i class="bi bi-telegram fs-4"></i></a>
-                    <a href="#" class="text-light"><i class="bi bi-facebook fs-4"></i></a>
-                    <a href="#" class="text-light"><i class="bi bi-twitter fs-4"></i></a>
+                    <a href="https://t.me/stormhosting_ua" target="_blank" rel="noopener noreferrer" class="text-light" title="Telegram"><i class="bi bi-telegram fs-4"></i></a>
+                    <a href="https://facebook.com/stormhosting.ua" target="_blank" rel="noopener noreferrer" class="text-light" title="Facebook"><i class="bi bi-facebook fs-4"></i></a>
+                    <a href="https://twitter.com/stormhosting_ua" target="_blank" rel="noopener noreferrer" class="text-light" title="Twitter"><i class="bi bi-twitter fs-4"></i></a>
                 </div>
             </div>
             
@@ -61,17 +61,17 @@ html, body {
                     <li><a href="/hosting">Хостинг</a></li>
                     <li><a href="/vds">VDS/VPS</a></li>
                     <li><a href="/domains">Домени</a></li>
-                    <li><a href="#">SSL сертифікати</a></li>
+                    <li><a href="/ssl-certificates">SSL сертифікати</a></li>
                 </ul>
             </div>
             
             <div class="col-lg-2 col-md-6 mb-4">
                 <h6 class="fw-bold mb-3">Підтримка</h6>
                 <ul class="list-unstyled">
-                    <li><a href="#">FAQ</a></li>
+                    <li><a href="/faq">FAQ</a></li>
                     <li><a href="/contacts">Контакти</a></li>
-                    <li><a href="#">Документація</a></li>
-                    <li><a href="#">Статус серверів</a></li>
+                    <li><a href="/docs">Документація</a></li>
+                    <li><a href="/server-status">Статус серверів</a></li>
                 </ul>
             </div>
             
