@@ -9,17 +9,17 @@ $meta_description = 'Потужні виділені сервери в Укра�
 $meta_keywords = 'виділений сервер, dedicated server, фізичний сервер, bare metal, колокація';
 
 // Додаткові CSS та JS файли для цієї сторінки
-//$additional_css = [
-//    '/assets/css/pages/vds-dedicated.css'
-//];
-//
-//$additional_js = [
-//    '/assets/js/pages/vds-dedicated.js'
-//];
+$additional_css = [
+    '/assets/css/pages/vds-dedicated.css'
+];
+
+$additional_js = [
+    '/assets/js/pages/vds-dedicated.js'
+];
 
 // Безпечне підключення конфігурації та БД
 $config_loaded = false;
-$db_connected = faLSE;
+$db_connected = false;
 
 try {
     $config_path = $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
