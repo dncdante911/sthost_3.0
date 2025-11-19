@@ -23,8 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Подключение конфигурации
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/config.php';
+// Не требуется подключение config.php для WHOIS
 
 // Получаем WHOIS серверы
 $whois_servers = [
@@ -55,10 +54,12 @@ if (empty($domain)) {
     exit;
 }
 
-// Валидация домена
+// Валидация домена - убираем пробелы и приводим к нижнему регистру
 $domain = strtolower($domain);
-if (!preg_match('/^[a-z0-9][a-z0-9-]*[a-z0-9]\.[a-z]{2,}$|^[a-z0-9]\.[a-z]{2,}$/', $domain)) {
-    echo json_encode(['error' => 'Невірний формат домену']);
+
+// Проверяем формат домена с помощью regex
+if (!preg_match('/^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i', $domain)) {
+    echo json_encode(['error' => 'Невірний формат домену. Приклад: example.com або example.ua']);
     exit;
 }
 
