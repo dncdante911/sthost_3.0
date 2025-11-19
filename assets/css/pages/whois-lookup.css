@@ -1,0 +1,635 @@
+/**
+ * WHOIS Lookup - Modern Styles
+ */
+
+:root {
+    --whois-primary: #3b82f6;
+    --whois-secondary: #8b5cf6;
+    --whois-success: #10b981;
+    --whois-warning: #f59e0b;
+    --whois-danger: #ef4444;
+    --whois-dark: #1e293b;
+    --whois-light: #f8fafc;
+    --whois-border: #e2e8f0;
+}
+
+/* Hero Section */
+.whois-hero {
+    background: linear-gradient(135deg, var(--whois-primary) 0%, var(--whois-secondary) 100%);
+    padding: 80px 0 120px;
+    position: relative;
+    overflow: hidden;
+}
+
+.whois-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="dots" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="2" fill="white" opacity="0.1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23dots)"/></svg>');
+    animation: movePattern 20s linear infinite;
+}
+
+@keyframes movePattern {
+    0% { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(60px) translateY(60px); }
+}
+
+.hero-content {
+    text-align: center;
+    color: white;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 40px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-title {
+    font-size: 52px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    opacity: 0.95;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+/* Search Card */
+.whois-search-card {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+.whois-search-form {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 20px;
+    font-size: 20px;
+    color: #94a3b8;
+    z-index: 1;
+}
+
+.search-input {
+    flex: 1;
+    padding: 16px 20px 16px 52px;
+    border: 2px solid var(--whois-border);
+    border-radius: 12px;
+    font-size: 16px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--whois-primary);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.search-input.is-valid {
+    border-color: var(--whois-success);
+}
+
+.search-input.is-invalid {
+    border-color: var(--whois-danger);
+}
+
+.search-btn {
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--whois-primary), var(--whois-secondary));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.search-btn:active {
+    transform: translateY(0);
+}
+
+.search-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.search-btn.loading {
+    position: relative;
+}
+
+.search-btn.loading span {
+    opacity: 0;
+}
+
+.search-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.search-hint {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    margin-top: 16px;
+}
+
+/* Results Container */
+#whoisResults {
+    margin-top: 40px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    z-index: 2;
+}
+
+/* Result Card */
+.whois-result-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-header {
+    padding: 32px;
+    background: linear-gradient(135deg, var(--whois-primary), var(--whois-secondary));
+    color: white;
+    text-align: center;
+}
+
+.result-header.available {
+    background: linear-gradient(135deg, var(--whois-success), #059669);
+}
+
+.result-header h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 16px 0 8px;
+}
+
+.result-header .domain-status {
+    font-size: 16px;
+    opacity: 0.95;
+}
+
+.result-body {
+    padding: 32px;
+}
+
+/* WHOIS Data Sections */
+.whois-data-grid {
+    display: grid;
+    gap: 24px;
+}
+
+.whois-section {
+    background: var(--whois-light);
+    border-radius: 12px;
+    padding: 24px;
+    border-left: 4px solid var(--whois-primary);
+}
+
+.whois-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--whois-dark);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.whois-section h3 i {
+    color: var(--whois-primary);
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--whois-border);
+}
+
+.data-row:last-child {
+    border-bottom: none;
+}
+
+.data-label {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.data-value {
+    font-weight: 500;
+    color: var(--whois-dark);
+    font-size: 14px;
+    text-align: right;
+}
+
+/* Name Servers */
+.name-servers-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.name-server-item {
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 2px solid var(--whois-border);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--whois-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.name-server-item i {
+    color: var(--whois-primary);
+}
+
+/* Raw Data */
+.raw-whois-data {
+    background: var(--whois-dark);
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.raw-whois-data::-webkit-scrollbar {
+    width: 8px;
+}
+
+.raw-whois-data::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.raw-whois-data::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+/* Features Section */
+.features-section {
+    padding: 80px 0;
+    background: white;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--whois-dark);
+    margin-bottom: 48px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.feature-card {
+    text-align: center;
+    padding: 32px 24px;
+    background: var(--whois-light);
+    border-radius: 16px;
+    transition: all 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--whois-primary), var(--whois-secondary));
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: white;
+}
+
+.feature-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--whois-dark);
+    margin-bottom: 12px;
+}
+
+.feature-card p {
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* Privacy Section */
+.privacy-section {
+    padding: 80px 0;
+    background: var(--whois-light);
+}
+
+.privacy-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.privacy-text h2 {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--whois-dark);
+    margin-bottom: 16px;
+}
+
+.privacy-text .lead {
+    font-size: 18px;
+    color: #64748b;
+    margin-bottom: 24px;
+}
+
+.privacy-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px;
+}
+
+.privacy-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 16px;
+    color: var(--whois-dark);
+}
+
+.privacy-list i {
+    font-size: 24px;
+    color: var(--whois-success);
+}
+
+.btn-primary-large {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, var(--whois-primary), var(--whois-secondary));
+    color: white;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-primary-large:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+    color: white;
+}
+
+.whois-comparison {
+    display: grid;
+    gap: 20px;
+}
+
+.whois-before,
+.whois-after {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid var(--whois-border);
+}
+
+.whois-after {
+    border-color: var(--whois-success);
+}
+
+.comparison-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 12px;
+}
+
+.comparison-label.protected {
+    color: var(--whois-success);
+}
+
+.whois-data {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+
+.whois-data .data-line {
+    padding: 6px 0;
+    color: var(--whois-dark);
+}
+
+.whois-data.protected .data-line {
+    color: var(--whois-success);
+    font-weight: 600;
+}
+
+/* Tools Section */
+.tools-section {
+    padding: 80px 0;
+    background: white;
+}
+
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+}
+
+.tool-card {
+    background: white;
+    border: 2px solid var(--whois-border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.tool-card:hover {
+    border-color: var(--whois-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.tool-card .tool-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--whois-primary), var(--whois-secondary));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+}
+
+.tool-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--whois-dark);
+    margin-bottom: 12px;
+}
+
+.tool-card p {
+    color: #64748b;
+    font-size: 15px;
+    margin-bottom: 16px;
+}
+
+.tool-link {
+    color: var(--whois-primary);
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .hero-title {
+        font-size: 40px;
+    }
+
+    .features-grid,
+    .tools-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .privacy-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .search-input-group {
+        flex-wrap: wrap;
+    }
+
+    .search-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .whois-hero {
+        padding: 40px 0 80px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+    }
+
+    .whois-search-form {
+        padding: 24px;
+    }
+
+    .features-grid,
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .result-body {
+        padding: 20px;
+    }
+}
