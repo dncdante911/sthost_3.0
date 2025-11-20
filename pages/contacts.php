@@ -77,7 +77,7 @@ $contact_info = [
 ];
 
 // ===========================================
-// ПРОСТИЙ МОНІТОРИНГ СЕРВЕРІВ
+// МОНІТОРИНГ СЕРВЕРІВ З КЕШУВАННЯМ
 // ===========================================
 
 /**
@@ -134,11 +134,22 @@ function check_server_http($url, $timeout = 5) {
     ];
 }
 
+/**
+ * Отримати категорію швидкості відгуку
+ */
+function get_response_category($ms) {
+    if ($ms <= 0) return ['text' => 'Недоступний', 'class' => 'danger', 'icon' => 'x-circle'];
+    if ($ms < 100) return ['text' => 'Відмінно', 'class' => 'success', 'icon' => 'zap'];
+    if ($ms < 500) return ['text' => 'Добре', 'class' => 'success', 'icon' => 'check-circle'];
+    if ($ms < 1000) return ['text' => 'Нормально', 'class' => 'warning', 'icon' => 'clock'];
+    return ['text' => 'Повільно', 'class' => 'warning', 'icon' => 'alert-triangle'];
+}
+
 // Визначаємо сервери для моніторингу
 $servers_to_check = [
     'ispmanager' => [
         'name' => 'ISPmanager',
-        'description' => 'Панель керування',
+        'description' => 'Панель керування хостингом',
         'host' => '192.168.0.250',
         'port' => 1500,
         'type' => 'https',
@@ -146,7 +157,7 @@ $servers_to_check = [
     ],
     'proxmox' => [
         'name' => 'Proxmox VE',
-        'description' => 'Віртуалізація',
+        'description' => 'Платформа віртуалізації',
         'host' => '192.168.0.4',
         'port' => 8006,
         'type' => 'https',
@@ -154,7 +165,7 @@ $servers_to_check = [
     ],
     'haproxy' => [
         'name' => 'HAProxy',
-        'description' => 'Load Balancer',
+        'description' => 'Балансувальник навантаження',
         'host' => '192.168.0.10',
         'port' => 80,
         'type' => 'tcp',
@@ -162,7 +173,7 @@ $servers_to_check = [
     ],
     'ns1' => [
         'name' => 'ns1.sthost.pro',
-        'description' => 'DNS Server 1',
+        'description' => 'Первинний DNS сервер',
         'host' => '195.22.131.11',
         'port' => 80,
         'type' => 'http',
@@ -170,7 +181,7 @@ $servers_to_check = [
     ],
     'ns2' => [
         'name' => 'ns2.sthost.pro',
-        'description' => 'DNS Server 2',
+        'description' => 'Вторинний DNS сервер',
         'host' => '46.232.232.38',
         'port' => 80,
         'type' => 'http',
@@ -178,35 +189,61 @@ $servers_to_check = [
     ]
 ];
 
-// Перевіряємо кожен сервер
-$server_status = [];
+// Кешування результатів (30 секунд)
+$cache_file = sys_get_temp_dir() . '/sthost_monitor_cache.json';
+$cache_ttl = 30;
+$use_cache = false;
 
-foreach ($servers_to_check as $id => $server) {
-    $result = ['online' => false, 'response_time' => 0];
+if (file_exists($cache_file)) {
+    $cache_data = json_decode(file_get_contents($cache_file), true);
+    if ($cache_data && isset($cache_data['timestamp']) && (time() - $cache_data['timestamp']) < $cache_ttl) {
+        $server_status = $cache_data['servers'];
+        $use_cache = true;
+    }
+}
 
-    try {
-        if ($server['type'] === 'https') {
-            $url = "https://{$server['host']}:{$server['port']}/";
-            $result = check_server_http($url, 3);
-        } elseif ($server['type'] === 'http') {
-            $url = "http://{$server['host']}/";
-            $result = check_server_http($url, 3);
-        } else {
-            $result = check_server_tcp($server['host'], $server['port'], 3);
+// Якщо кеш не валідний - перевіряємо сервери
+if (!$use_cache) {
+    $server_status = [];
+
+    foreach ($servers_to_check as $id => $server) {
+        $result = ['online' => false, 'response_time' => 0];
+
+        try {
+            if ($server['type'] === 'https') {
+                $url = "https://{$server['host']}:{$server['port']}/";
+                $result = check_server_http($url, 3);
+            } elseif ($server['type'] === 'http') {
+                $url = "http://{$server['host']}/";
+                $result = check_server_http($url, 3);
+            } else {
+                $result = check_server_tcp($server['host'], $server['port'], 3);
+            }
+        } catch (Throwable $e) {
+            error_log("Monitor error for {$server['name']}: " . $e->getMessage());
         }
-    } catch (Throwable $e) {
-        error_log("Monitor error for {$server['name']}: " . $e->getMessage());
+
+        $response_cat = get_response_category($result['response_time']);
+
+        $server_status[$id] = [
+            'name' => $server['name'],
+            'description' => $server['description'],
+            'host' => $server['host'],
+            'port' => $server['port'],
+            'check_type' => strtoupper($server['type']),
+            'status' => $result['online'] ? 'online' : 'offline',
+            'response_time' => $result['response_time'],
+            'response_category' => $response_cat,
+            'icon' => $server['icon'],
+            'last_check' => date('H:i:s')
+        ];
     }
 
-    $server_status[$id] = [
-        'name' => $server['name'],
-        'description' => $server['description'],
-        'status' => $result['online'] ? 'online' : 'offline',
-        'response_time' => $result['response_time'] > 0 ? $result['response_time'] . 'ms' : 'N/A',
-        'uptime' => $result['online'] ? '99.9%' : '0%',
-        'load' => $result['online'] ? 'OK' : 'Down',
-        'icon' => $server['icon']
-    ];
+    // Зберігаємо в кеш
+    file_put_contents($cache_file, json_encode([
+        'timestamp' => time(),
+        'servers' => $server_status
+    ]));
 }
 
 // Обробка форми зворотного зв'язку
@@ -591,35 +628,58 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             <div class="status-grid">
                 <?php foreach ($server_status as $server_id => $server): ?>
                     <div class="status-card status-card-<?php echo $server['status']; ?>" data-server="<?php echo htmlspecialchars($server_id); ?>">
-                        <div class="status-header">
-                            <div class="status-icon-wrapper">
+                        <!-- Заголовок з іконкою та статусом -->
+                        <div class="status-card-header">
+                            <div class="server-icon status-icon-<?php echo $server['status']; ?>">
                                 <i class="icon-<?php echo htmlspecialchars($server['icon'] ?? 'server'); ?>"></i>
                             </div>
-                            <div class="status-info">
+                            <div class="server-main-info">
                                 <h3 class="server-name"><?php echo htmlspecialchars($server['name']); ?></h3>
                                 <p class="server-description"><?php echo htmlspecialchars($server['description'] ?? ''); ?></p>
                             </div>
-                            <div class="status-badge status-<?php echo $server['status']; ?>">
-                                <span class="status-dot"></span>
-                                <span class="status-text">
-                                    <?php echo $server['status'] === 'online' ? 'Online' : 'Offline'; ?>
-                                </span>
+                        </div>
+
+                        <!-- Технічна інформація -->
+                        <div class="server-tech-info">
+                            <div class="tech-item">
+                                <span class="tech-label">Адреса:</span>
+                                <span class="tech-value"><?php echo htmlspecialchars($server['host']); ?>:<?php echo htmlspecialchars($server['port']); ?></span>
+                            </div>
+                            <div class="tech-item">
+                                <span class="tech-label">Тип:</span>
+                                <span class="tech-badge"><?php echo htmlspecialchars($server['check_type']); ?></span>
                             </div>
                         </div>
 
-                        <div class="status-metrics">
-                            <div class="metric">
-                                <div class="metric-value"><?php echo htmlspecialchars($server['response_time']); ?></div>
-                                <div class="metric-label">Відгук</div>
+                        <!-- Статус та метрики -->
+                        <div class="server-status-info">
+                            <div class="status-main">
+                                <div class="status-indicator-large status-<?php echo $server['status']; ?>">
+                                    <i class="icon-<?php echo $server['status'] === 'online' ? 'check-circle' : 'x-circle'; ?>"></i>
+                                    <span><?php echo $server['status'] === 'online' ? 'Працює' : 'Недоступний'; ?></span>
+                                </div>
                             </div>
-                            <div class="metric">
-                                <div class="metric-value"><?php echo htmlspecialchars($server['uptime']); ?></div>
-                                <div class="metric-label">Uptime</div>
+
+                            <?php if ($server['status'] === 'online'): ?>
+                            <div class="response-info">
+                                <div class="response-time">
+                                    <span class="response-value"><?php echo round($server['response_time']); ?></span>
+                                    <span class="response-unit">ms</span>
+                                </div>
+                                <div class="response-category response-<?php echo $server['response_category']['class']; ?>">
+                                    <i class="icon-<?php echo $server['response_category']['icon']; ?>"></i>
+                                    <?php echo $server['response_category']['text']; ?>
+                                </div>
                             </div>
-                            <div class="metric">
-                                <div class="metric-value"><?php echo htmlspecialchars($server['load']); ?></div>
-                                <div class="metric-label">Статус</div>
-                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Час перевірки -->
+                        <div class="server-footer">
+                            <span class="last-check">
+                                <i class="icon-clock"></i>
+                                Перевірено: <?php echo htmlspecialchars($server['last_check']); ?>
+                            </span>
                         </div>
                     </div>
                 <?php endforeach; ?>

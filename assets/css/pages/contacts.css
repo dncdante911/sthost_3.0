@@ -576,93 +576,212 @@
     margin-bottom: 40px;
 }
 
+/* ===== НОВІ СТИЛІ КАРТОЧОК СЕРВЕРІВ ===== */
 .status-card {
     background: var(--contacts-white);
-    border: 2px solid var(--contacts-border);
+    border: 1px solid var(--contacts-border);
     border-radius: var(--contacts-radius-lg);
-    padding: 25px;
+    padding: 20px;
     transition: var(--contacts-transition);
     position: relative;
-    border-left: 4px solid var(--contacts-border);
+    overflow: hidden;
 }
 
-.status-card-online {
-    border-left-color: var(--status-online);
+.status-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--contacts-border);
 }
 
-.status-card-offline {
-    border-left-color: var(--status-offline);
-}
-
-.status-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--contacts-shadow-lg);
-}
-
-.status-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.status-icon-wrapper {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--contacts-primary);
-    color: white;
-    font-size: 1.4rem;
-    flex-shrink: 0;
-}
-
-.status-card-online .status-icon-wrapper {
+.status-card-online::before {
     background: var(--status-online);
 }
 
-.status-card-offline .status-icon-wrapper {
+.status-card-offline::before {
     background: var(--status-offline);
 }
 
-.status-info {
-    flex: 1;
+.status-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--contacts-shadow-lg);
 }
 
-.server-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--contacts-text-dark);
-    margin-bottom: 4px;
-}
-
-.server-description {
-    font-size: 0.85rem;
-    color: var(--contacts-text-muted);
-    margin: 0;
-}
-
-.status-badge {
+/* Заголовок карточки */
+.status-card-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 20px;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.server-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
     flex-shrink: 0;
 }
 
-.status-badge.status-online {
+.status-icon-online {
     background: rgba(16, 185, 129, 0.1);
     color: var(--status-online);
 }
 
-.status-badge.status-offline {
+.status-icon-offline {
     background: rgba(239, 68, 68, 0.1);
     color: var(--status-offline);
+}
+
+.server-main-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.server-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--contacts-text-dark);
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.server-description {
+    font-size: 0.75rem;
+    color: var(--contacts-text-muted);
+    margin: 0;
+}
+
+/* Технічна інформація */
+.server-tech-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--contacts-bg-light);
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.75rem;
+}
+
+.tech-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tech-label {
+    color: var(--contacts-text-muted);
+}
+
+.tech-value {
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--contacts-text-dark);
+}
+
+.tech-badge {
+    background: var(--contacts-primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.65rem;
+}
+
+/* Статус та метрики */
+.server-status-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.status-indicator-large {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-indicator-large.status-online {
+    color: var(--status-online);
+}
+
+.status-indicator-large.status-offline {
+    color: var(--status-offline);
+}
+
+.response-info {
+    text-align: right;
+}
+
+.response-time {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 2px;
+}
+
+.response-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--contacts-text-dark);
+    line-height: 1;
+}
+
+.response-unit {
+    font-size: 0.7rem;
+    color: var(--contacts-text-muted);
+}
+
+.response-category {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.response-success {
+    color: var(--status-online);
+}
+
+.response-warning {
+    color: var(--status-maintenance);
+}
+
+.response-danger {
+    color: var(--status-offline);
+}
+
+/* Футер карточки */
+.server-footer {
+    padding-top: 12px;
+    border-top: 1px solid var(--contacts-border);
+}
+
+.last-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--contacts-text-muted);
+}
+
+.last-check i {
+    font-size: 0.8rem;
 }
 
 .status-indicator {
