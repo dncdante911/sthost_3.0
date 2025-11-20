@@ -123,13 +123,18 @@ function check_server_http($url, $timeout = 5) {
 
     curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_errno($ch);
     curl_close($ch);
 
     $response_time = round((microtime(true) - $start) * 1000, 1);
 
+    // Тільки 2xx і 3xx коди вважаються успішними
+    // 0 = помилка з'єднання, 4xx = клієнтські помилки, 5xx = серверні помилки
+    $is_online = ($curl_error === 0 && $http_code >= 200 && $http_code < 400);
+
     return [
-        'online' => ($http_code >= 200 && $http_code < 500),
-        'response_time' => $response_time,
+        'online' => $is_online,
+        'response_time' => $is_online ? $response_time : 0,
         'http_code' => $http_code
     ];
 }
@@ -194,12 +199,20 @@ $cache_file = sys_get_temp_dir() . '/sthost_monitor_cache.json';
 $cache_ttl = 30;
 $use_cache = false;
 
-if (file_exists($cache_file)) {
+// Примусове оновлення через ?refresh=1
+$force_refresh = isset($_GET['refresh']) && $_GET['refresh'] == '1';
+
+if (!$force_refresh && file_exists($cache_file)) {
     $cache_data = json_decode(file_get_contents($cache_file), true);
     if ($cache_data && isset($cache_data['timestamp']) && (time() - $cache_data['timestamp']) < $cache_ttl) {
         $server_status = $cache_data['servers'];
         $use_cache = true;
     }
+}
+
+// Видаляємо старий кеш якщо примусове оновлення
+if ($force_refresh && file_exists($cache_file)) {
+    unlink($cache_file);
 }
 
 // Якщо кеш не валідний - перевіряємо сервери
