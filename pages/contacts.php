@@ -77,43 +77,16 @@ $contact_info = [
 ];
 
 // ===========================================
-// МОНІТОРИНГ СЕРВЕРІВ (через API)
+// МОНІТОРИНГ СЕРВЕРІВ
 // ===========================================
 
-$server_status = [];
+require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/monitoring.php';
+$server_status = get_server_status();
 
-// Отримуємо дані з API
-$api_url = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/api/monitoring/status.php';
-
-$ch = curl_init();
-curl_setopt_array($ch, [
-    CURLOPT_URL => $api_url,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 15,
-    CURLOPT_SSL_VERIFYPEER => false,
-]);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-if ($response) {
-    $data = json_decode($response, true);
-    if ($data && $data['success'] && isset($data['data'])) {
-        $server_status = $data['data'];
-    }
-}
-
-// Якщо API не відповів - показуємо заглушку
+// Якщо не вдалося отримати дані
 if (empty($server_status)) {
     $server_status = [
-        [
-            'id' => 'loading',
-            'name' => 'Завантаження...',
-            'color' => '#9ca3af',
-            'online' => false,
-            'response_time' => 0,
-            'metrics' => []
-        ]
+        ['id' => 'error', 'name' => 'Помилка завантаження', 'color' => '#ef4444', 'online' => false, 'response_time' => 0, 'metrics' => []]
     ];
 }
 
