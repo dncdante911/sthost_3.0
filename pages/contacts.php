@@ -76,20 +76,6 @@ $contact_info = [
     ]
 ];
 
-// ===========================================
-// МОНІТОРИНГ СЕРВЕРІВ
-// ===========================================
-
-require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/monitoring.php';
-$server_status = get_server_status();
-
-// Якщо не вдалося отримати дані
-if (empty($server_status)) {
-    $server_status = [
-        ['id' => 'error', 'name' => 'Помилка завантаження', 'color' => '#ef4444', 'online' => false, 'response_time' => 0, 'metrics' => []]
-    ];
-}
-
 // Обробка форми зворотного зв'язку
 $success_message = '';
 $error_message = '';
@@ -459,94 +445,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
         </div>
     </section>
 
-    <!-- Server Status -->
-    <section class="server-status">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Статус серверів</h2>
-                <p class="section-subtitle">
-                    Моніторинг роботи наших серверів в реальному часі
-                </p>
-            </div>
-            
-            <div class="status-grid">
-                <?php foreach ($server_status as $server): ?>
-                    <div class="monitor-card <?php echo $server['online'] ? 'is-online' : 'is-offline'; ?>">
-                        <div class="monitor-visual">
-                            <div class="monitor-circle" style="--color: <?php echo htmlspecialchars($server['color']); ?>">
-                                <svg viewBox="0 0 100 100">
-                                    <circle class="monitor-bg" cx="50" cy="50" r="45"/>
-                                    <?php if ($server['online']): ?>
-                                    <circle class="monitor-progress" cx="50" cy="50" r="45"
-                                            style="stroke-dasharray: 283 283"/>
-                                    <?php endif; ?>
-                                </svg>
-                                <div class="monitor-icon">
-                                    <?php if ($server['online']): ?>
-                                        <i class="icon-check-circle"></i>
-                                    <?php else: ?>
-                                        <i class="icon-x-circle"></i>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="monitor-info">
-                            <h4 class="monitor-name"><?php echo htmlspecialchars($server['name']); ?></h4>
-
-                            <div class="monitor-status">
-                                <?php if ($server['online']): ?>
-                                    <span class="status-badge online">
-                                        <i class="icon-check"></i> Працює
-                                    </span>
-                                <?php else: ?>
-                                    <span class="status-badge offline">
-                                        <i class="icon-x"></i> Офлайн
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-
-                            <?php if ($server['online']): ?>
-                            <div class="monitor-stats">
-                                <div class="stat">
-                                    <span class="stat-value"><?php echo $server['response_time']; ?></span>
-                                    <span class="stat-label">ms</span>
-                                </div>
-                                <?php if (isset($server['metrics']['cpu'])): ?>
-                                <div class="stat">
-                                    <span class="stat-value"><?php echo $server['metrics']['cpu']; ?>%</span>
-                                    <span class="stat-label">CPU</span>
-                                </div>
-                                <?php elseif (isset($server['metrics']['backends'])): ?>
-                                <div class="stat">
-                                    <span class="stat-value"><?php echo $server['metrics']['backends']; ?></span>
-                                    <span class="stat-label">backends</span>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-            
-            <div class="status-legend">
-                <div class="legend-item">
-                    <span class="legend-dot status-online"></span>
-                    <span>Сервер працює нормально</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot status-maintenance"></span>
-                    <span>Планове обслуговування</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot status-offline"></span>
-                    <span>Сервер недоступний</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Working Hours -->
     <section class="working-hours">
         <div class="container">
@@ -602,22 +500,6 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
         </div>
     </section>
 </main>
-
-<!-- Простий скрипт для оновлення сторінки -->
-<script>
-// Оновлення статусу серверів - просто перезавантажуємо сторінку
-function refreshServerStatus() {
-    location.reload();
-}
-
-// Автооновлення кожні 60 секунд
-setInterval(function() {
-    // Тільки якщо вкладка активна
-    if (!document.hidden) {
-        location.reload();
-    }
-}, 60000);
-</script>
 
 <script src="/assets/js/contacts.js"></script>
 <?php include $_SERVER['DOCUMENT_ROOT'] . '/includes/footer.php'; ?>
