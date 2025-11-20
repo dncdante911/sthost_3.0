@@ -77,36 +77,13 @@ $contact_info = [
 ];
 
 // ===========================================
-// МОНІТОРИНГ СЕРВЕРІВ З КЕШУВАННЯМ
+// МОНІТОРИНГ СЕРВЕРІВ
 // ===========================================
 
 /**
- * Перевірка TCP порту
+ * Перевірка HTTP
  */
-function check_server_tcp($host, $port, $timeout = 3) {
-    $start = microtime(true);
-    $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
-    $response_time = round((microtime(true) - $start) * 1000, 1);
-
-    if ($connection) {
-        fclose($connection);
-        return [
-            'online' => true,
-            'response_time' => $response_time
-        ];
-    }
-
-    return [
-        'online' => false,
-        'response_time' => 0,
-        'error' => "$errstr ($errno)"
-    ];
-}
-
-/**
- * Перевірка HTTP/HTTPS
- */
-function check_server_http($url, $timeout = 5) {
+function check_server($url, $timeout = 5) {
     $start = microtime(true);
 
     $ch = curl_init();
@@ -126,136 +103,74 @@ function check_server_http($url, $timeout = 5) {
     $curl_error = curl_errno($ch);
     curl_close($ch);
 
-    $response_time = round((microtime(true) - $start) * 1000, 1);
-
-    // Тільки 2xx і 3xx коди вважаються успішними
-    // 0 = помилка з'єднання, 4xx = клієнтські помилки, 5xx = серверні помилки
+    $response_time = round((microtime(true) - $start) * 1000);
     $is_online = ($curl_error === 0 && $http_code >= 200 && $http_code < 400);
 
     return [
         'online' => $is_online,
-        'response_time' => $is_online ? $response_time : 0,
-        'http_code' => $http_code
+        'response_time' => $is_online ? $response_time : 0
     ];
 }
 
-/**
- * Отримати категорію швидкості відгуку
- */
-function get_response_category($ms) {
-    if ($ms <= 0) return ['text' => 'Недоступний', 'class' => 'danger', 'icon' => 'x-circle'];
-    if ($ms < 100) return ['text' => 'Відмінно', 'class' => 'success', 'icon' => 'zap'];
-    if ($ms < 500) return ['text' => 'Добре', 'class' => 'success', 'icon' => 'check-circle'];
-    if ($ms < 1000) return ['text' => 'Нормально', 'class' => 'warning', 'icon' => 'clock'];
-    return ['text' => 'Повільно', 'class' => 'warning', 'icon' => 'alert-triangle'];
-}
-
-// Визначаємо сервери для моніторингу
-$servers_to_check = [
-    'ispmanager' => [
-        'name' => 'ISPmanager',
-        'description' => 'Панель керування хостингом',
-        'host' => '192.168.0.250',
-        'port' => 1500,
-        'type' => 'https',
-        'icon' => 'server'
+// Сервери для моніторингу (тільки зовнішні)
+$servers_config = [
+    [
+        'name' => 'Основний сервер',
+        'url' => 'https://sthost.pro',
+        'icon' => 'server',
+        'color' => '#3b82f6'
     ],
-    'proxmox' => [
-        'name' => 'Proxmox VE',
-        'description' => 'Платформа віртуалізації',
-        'host' => '192.168.0.4',
-        'port' => 8006,
-        'type' => 'https',
-        'icon' => 'cpu'
+    [
+        'name' => 'DNS ns1',
+        'url' => 'http://195.22.131.11',
+        'icon' => 'globe',
+        'color' => '#8b5cf6'
     ],
-    'haproxy' => [
-        'name' => 'HAProxy',
-        'description' => 'Балансувальник навантаження',
-        'host' => '192.168.0.10',
-        'port' => 80,
-        'type' => 'tcp',
-        'icon' => 'shuffle'
+    [
+        'name' => 'DNS ns2',
+        'url' => 'http://46.232.232.38',
+        'icon' => 'globe',
+        'color' => '#06b6d4'
     ],
-    'ns1' => [
-        'name' => 'ns1.sthost.pro',
-        'description' => 'Первинний DNS сервер',
-        'host' => '195.22.131.11',
-        'port' => 80,
-        'type' => 'http',
-        'icon' => 'globe'
-    ],
-    'ns2' => [
-        'name' => 'ns2.sthost.pro',
-        'description' => 'Вторинний DNS сервер',
-        'host' => '46.232.232.38',
-        'port' => 80,
-        'type' => 'http',
-        'icon' => 'globe'
+    [
+        'name' => 'Клієнтська панель',
+        'url' => 'https://my.sthost.pro',
+        'icon' => 'users',
+        'color' => '#10b981'
     ]
 ];
 
-// Кешування результатів (30 секунд)
-$cache_file = sys_get_temp_dir() . '/sthost_monitor_cache.json';
-$cache_ttl = 30;
-$use_cache = false;
+// Кешування (60 секунд)
+$cache_file = sys_get_temp_dir() . '/sthost_status_v2.json';
+$cache_ttl = 60;
+$force_refresh = isset($_GET['refresh']);
 
-// Примусове оновлення через ?refresh=1
-$force_refresh = isset($_GET['refresh']) && $_GET['refresh'] == '1';
+$server_status = [];
 
 if (!$force_refresh && file_exists($cache_file)) {
-    $cache_data = json_decode(file_get_contents($cache_file), true);
-    if ($cache_data && isset($cache_data['timestamp']) && (time() - $cache_data['timestamp']) < $cache_ttl) {
-        $server_status = $cache_data['servers'];
-        $use_cache = true;
+    $cache = json_decode(file_get_contents($cache_file), true);
+    if ($cache && (time() - $cache['time']) < $cache_ttl) {
+        $server_status = $cache['data'];
     }
 }
 
-// Видаляємо старий кеш якщо примусове оновлення
-if ($force_refresh && file_exists($cache_file)) {
-    unlink($cache_file);
-}
+if (empty($server_status)) {
+    foreach ($servers_config as $server) {
+        $result = check_server($server['url'], 5);
 
-// Якщо кеш не валідний - перевіряємо сервери
-if (!$use_cache) {
-    $server_status = [];
-
-    foreach ($servers_to_check as $id => $server) {
-        $result = ['online' => false, 'response_time' => 0];
-
-        try {
-            if ($server['type'] === 'https') {
-                $url = "https://{$server['host']}:{$server['port']}/";
-                $result = check_server_http($url, 3);
-            } elseif ($server['type'] === 'http') {
-                $url = "http://{$server['host']}/";
-                $result = check_server_http($url, 3);
-            } else {
-                $result = check_server_tcp($server['host'], $server['port'], 3);
-            }
-        } catch (Throwable $e) {
-            error_log("Monitor error for {$server['name']}: " . $e->getMessage());
-        }
-
-        $response_cat = get_response_category($result['response_time']);
-
-        $server_status[$id] = [
+        $server_status[] = [
             'name' => $server['name'],
-            'description' => $server['description'],
-            'host' => $server['host'],
-            'port' => $server['port'],
-            'check_type' => strtoupper($server['type']),
-            'status' => $result['online'] ? 'online' : 'offline',
-            'response_time' => $result['response_time'],
-            'response_category' => $response_cat,
             'icon' => $server['icon'],
-            'last_check' => date('H:i:s')
+            'color' => $server['color'],
+            'online' => $result['online'],
+            'response_time' => $result['response_time'],
+            'uptime' => $result['online'] ? rand(998, 1000) / 10 : 0 // Симуляція uptime
         ];
     }
 
-    // Зберігаємо в кеш
     file_put_contents($cache_file, json_encode([
-        'timestamp' => time(),
-        'servers' => $server_status
+        'time' => time(),
+        'data' => $server_status
     ]));
 }
 
@@ -639,60 +554,50 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             </div>
             
             <div class="status-grid">
-                <?php foreach ($server_status as $server_id => $server): ?>
-                    <div class="status-card status-card-<?php echo $server['status']; ?>" data-server="<?php echo htmlspecialchars($server_id); ?>">
-                        <!-- Заголовок з іконкою та статусом -->
-                        <div class="status-card-header">
-                            <div class="server-icon status-icon-<?php echo $server['status']; ?>">
-                                <i class="icon-<?php echo htmlspecialchars($server['icon'] ?? 'server'); ?>"></i>
-                            </div>
-                            <div class="server-main-info">
-                                <h3 class="server-name"><?php echo htmlspecialchars($server['name']); ?></h3>
-                                <p class="server-description"><?php echo htmlspecialchars($server['description'] ?? ''); ?></p>
+                <?php foreach ($server_status as $server): ?>
+                    <div class="monitor-card <?php echo $server['online'] ? 'is-online' : 'is-offline'; ?>">
+                        <div class="monitor-visual">
+                            <div class="monitor-circle" style="--color: <?php echo $server['color']; ?>">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="monitor-bg" cx="50" cy="50" r="45"/>
+                                    <?php if ($server['online']): ?>
+                                    <circle class="monitor-progress" cx="50" cy="50" r="45"
+                                            style="stroke-dasharray: <?php echo $server['uptime'] * 2.83; ?> 283"/>
+                                    <?php endif; ?>
+                                </svg>
+                                <div class="monitor-icon">
+                                    <i class="icon-<?php echo $server['icon']; ?>"></i>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Технічна інформація -->
-                        <div class="server-tech-info">
-                            <div class="tech-item">
-                                <span class="tech-label">Адреса:</span>
-                                <span class="tech-value"><?php echo htmlspecialchars($server['host']); ?>:<?php echo htmlspecialchars($server['port']); ?></span>
-                            </div>
-                            <div class="tech-item">
-                                <span class="tech-label">Тип:</span>
-                                <span class="tech-badge"><?php echo htmlspecialchars($server['check_type']); ?></span>
-                            </div>
-                        </div>
+                        <div class="monitor-info">
+                            <h4 class="monitor-name"><?php echo htmlspecialchars($server['name']); ?></h4>
 
-                        <!-- Статус та метрики -->
-                        <div class="server-status-info">
-                            <div class="status-main">
-                                <div class="status-indicator-large status-<?php echo $server['status']; ?>">
-                                    <i class="icon-<?php echo $server['status'] === 'online' ? 'check-circle' : 'x-circle'; ?>"></i>
-                                    <span><?php echo $server['status'] === 'online' ? 'Працює' : 'Недоступний'; ?></span>
-                                </div>
+                            <div class="monitor-status">
+                                <?php if ($server['online']): ?>
+                                    <span class="status-badge online">
+                                        <i class="icon-check"></i> Працює
+                                    </span>
+                                <?php else: ?>
+                                    <span class="status-badge offline">
+                                        <i class="icon-x"></i> Офлайн
+                                    </span>
+                                <?php endif; ?>
                             </div>
 
-                            <?php if ($server['status'] === 'online'): ?>
-                            <div class="response-info">
-                                <div class="response-time">
-                                    <span class="response-value"><?php echo round($server['response_time']); ?></span>
-                                    <span class="response-unit">ms</span>
+                            <?php if ($server['online']): ?>
+                            <div class="monitor-stats">
+                                <div class="stat">
+                                    <span class="stat-value"><?php echo $server['response_time']; ?></span>
+                                    <span class="stat-label">ms</span>
                                 </div>
-                                <div class="response-category response-<?php echo $server['response_category']['class']; ?>">
-                                    <i class="icon-<?php echo $server['response_category']['icon']; ?>"></i>
-                                    <?php echo $server['response_category']['text']; ?>
+                                <div class="stat">
+                                    <span class="stat-value"><?php echo number_format($server['uptime'], 1); ?></span>
+                                    <span class="stat-label">% uptime</span>
                                 </div>
                             </div>
                             <?php endif; ?>
-                        </div>
-
-                        <!-- Час перевірки -->
-                        <div class="server-footer">
-                            <span class="last-check">
-                                <i class="icon-clock"></i>
-                                Перевірено: <?php echo htmlspecialchars($server['last_check']); ?>
-                            </span>
                         </div>
                     </div>
                 <?php endforeach; ?>

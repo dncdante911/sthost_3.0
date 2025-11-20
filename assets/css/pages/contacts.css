@@ -576,212 +576,136 @@
     margin-bottom: 40px;
 }
 
-/* ===== НОВІ СТИЛІ КАРТОЧОК СЕРВЕРІВ ===== */
-.status-card {
+/* ===== ГРАФІЧНІ КАРТОЧКИ МОНІТОРИНГУ ===== */
+.monitor-card {
     background: var(--contacts-white);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
     border: 1px solid var(--contacts-border);
-    border-radius: var(--contacts-radius-lg);
-    padding: 20px;
-    transition: var(--contacts-transition);
-    position: relative;
-    overflow: hidden;
 }
 
-.status-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--contacts-border);
+.monitor-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
-.status-card-online::before {
-    background: var(--status-online);
+.monitor-card.is-offline {
+    opacity: 0.6;
 }
 
-.status-card-offline::before {
-    background: var(--status-offline);
-}
-
-.status-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--contacts-shadow-lg);
-}
-
-/* Заголовок карточки */
-.status-card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+/* Круговий індикатор */
+.monitor-visual {
     margin-bottom: 16px;
 }
 
-.server-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
+.monitor-circle {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    position: relative;
 }
 
-.status-icon-online {
+.monitor-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.monitor-bg {
+    fill: none;
+    stroke: #f1f5f9;
+    stroke-width: 8;
+}
+
+.monitor-progress {
+    fill: none;
+    stroke: var(--color);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+.monitor-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    color: var(--color);
+}
+
+.is-offline .monitor-icon {
+    color: var(--status-offline);
+}
+
+.is-offline .monitor-progress {
+    stroke: var(--status-offline);
+}
+
+/* Інформація */
+.monitor-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.monitor-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--contacts-text-dark);
+    margin: 0;
+}
+
+/* Статус бейдж */
+.monitor-status .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.monitor-status .status-badge.online {
     background: rgba(16, 185, 129, 0.1);
     color: var(--status-online);
 }
 
-.status-icon-offline {
+.monitor-status .status-badge.offline {
     background: rgba(239, 68, 68, 0.1);
     color: var(--status-offline);
 }
 
-.server-main-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.server-name {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--contacts-text-dark);
-    margin: 0 0 2px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.server-description {
-    font-size: 0.75rem;
-    color: var(--contacts-text-muted);
-    margin: 0;
-}
-
-/* Технічна інформація */
-.server-tech-info {
+/* Статистика */
+.monitor-stats {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    background: var(--contacts-bg-light);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    font-size: 0.75rem;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--contacts-border);
 }
 
-.tech-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+.monitor-stats .stat {
+    text-align: center;
 }
 
-.tech-label {
-    color: var(--contacts-text-muted);
-}
-
-.tech-value {
-    font-family: monospace;
-    font-weight: 600;
-    color: var(--contacts-text-dark);
-}
-
-.tech-badge {
-    background: var(--contacts-primary);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.65rem;
-}
-
-/* Статус та метрики */
-.server-status-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.status-indicator-large {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.status-indicator-large.status-online {
-    color: var(--status-online);
-}
-
-.status-indicator-large.status-offline {
-    color: var(--status-offline);
-}
-
-.response-info {
-    text-align: right;
-}
-
-.response-time {
-    display: flex;
-    align-items: baseline;
-    justify-content: flex-end;
-    gap: 2px;
-}
-
-.response-value {
-    font-size: 1.5rem;
+.monitor-stats .stat-value {
+    display: block;
+    font-size: 1.25rem;
     font-weight: 800;
     color: var(--contacts-text-dark);
     line-height: 1;
 }
 
-.response-unit {
-    font-size: 0.7rem;
+.monitor-stats .stat-label {
+    font-size: 0.65rem;
     color: var(--contacts-text-muted);
-}
-
-.response-category {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    margin-top: 2px;
-}
-
-.response-success {
-    color: var(--status-online);
-}
-
-.response-warning {
-    color: var(--status-maintenance);
-}
-
-.response-danger {
-    color: var(--status-offline);
-}
-
-/* Футер карточки */
-.server-footer {
-    padding-top: 12px;
-    border-top: 1px solid var(--contacts-border);
-}
-
-.last-check {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.7rem;
-    color: var(--contacts-text-muted);
-}
-
-.last-check i {
-    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .status-indicator {
