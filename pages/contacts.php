@@ -80,8 +80,14 @@ $contact_info = [
 $server_status = [];
 
 try {
-    // Підключаємо систему мониторинга
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/includes/monitoring/ServerMonitor.php';
+    // Визначаємо шлях до файлу мониторинга відносно поточного файлу
+    $monitor_file = dirname(__DIR__) . '/includes/monitoring/ServerMonitor.php';
+
+    if (!file_exists($monitor_file)) {
+        throw new Exception("ServerMonitor.php not found at: $monitor_file");
+    }
+
+    require_once $monitor_file;
 
     $monitor = new ServerMonitor();
     $monitoring_data = $monitor->getSimpleStatus();
@@ -90,44 +96,45 @@ try {
     if (isset($monitoring_data['servers']) && is_array($monitoring_data['servers'])) {
         foreach ($monitoring_data['servers'] as $server) {
             $status = 'offline';
-            if ($server['online']) {
-                $status = $server['status'] === 'online' ? 'online' : 'maintenance';
+            if (isset($server['online']) && $server['online']) {
+                $status = (isset($server['status']) && $server['status'] === 'online') ? 'online' : 'maintenance';
             }
 
             // Визначаємо метрики залежно від типу сервера
             $response_time = 'N/A';
             $load = 'N/A';
             $uptime = 'N/A';
+            $server_type = $server['type'] ?? 'Unknown';
 
-            if ($server['type'] === 'ISPManager' || $server['type'] === 'Proxmox') {
+            if ($server_type === 'ISPManager' || $server_type === 'Proxmox') {
                 $load = isset($server['cpu']) ? round($server['cpu']) . '%' : 'N/A';
                 $uptime = isset($server['uptime']) ? $server['uptime'] . '%' : 'N/A';
                 $response_time = '<5ms';
-            } elseif ($server['type'] === 'HAProxy') {
+            } elseif ($server_type === 'HAProxy') {
                 $load = isset($server['sessions']) ? $server['sessions'] . ' sess' : 'N/A';
                 $uptime = isset($server['backends_up'], $server['backends_total'])
                     ? $server['backends_up'] . '/' . $server['backends_total'] . ' BE'
                     : 'N/A';
                 $response_time = '<2ms';
-            } elseif ($server['type'] === 'Network') {
+            } elseif ($server_type === 'Network') {
                 $load = isset($server['usage']) ? round($server['usage']) . '%' : 'N/A';
                 $uptime = isset($server['rx_rate']) ? $server['rx_rate'] : 'N/A';
                 $response_time = isset($server['tx_rate']) ? $server['tx_rate'] : 'N/A';
             }
 
-            $server_status[$server['id']] = [
-                'name' => $server['name'],
+            $server_status[$server['id'] ?? 'unknown'] = [
+                'name' => $server['name'] ?? 'Unknown Server',
                 'status' => $status,
                 'uptime' => $uptime,
                 'response_time' => $response_time,
                 'load' => $load,
-                'type' => $server['type']
+                'type' => $server_type
             ];
         }
     }
-} catch (Exception $e) {
-    // Якщо помилка - показуємо заглушку
-    error_log("Monitoring error on contacts page: " . $e->getMessage());
+} catch (Throwable $e) {
+    // Ловимо всі помилки (Exception та Error в PHP 7+)
+    error_log("Monitoring error on contacts page: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
     $server_status = [
         'placeholder' => [
             'name' => 'Мониторинг налаштовується',
