@@ -10,6 +10,7 @@ require_once $monitor_path . '/ISPManagerMonitor.php';
 require_once $monitor_path . '/ProxmoxMonitor.php';
 require_once $monitor_path . '/HAProxyMonitor.php';
 require_once $monitor_path . '/NetworkMonitor.php';
+require_once $monitor_path . '/SystemServerMonitor.php';
 
 class ServerMonitor {
     private $config;
@@ -51,6 +52,7 @@ class ServerMonitor {
             'proxmox' => [],
             'haproxy' => [],
             'network' => [],
+            'system_servers' => [],
             'summary' => [
                 'total' => 0,
                 'online' => 0,
@@ -96,6 +98,16 @@ class ServerMonitor {
                 $monitor = new NetworkMonitor($interface, $this->cache_ttl);
                 $status = $monitor->getInterfaceStatus();
                 $result['network'][] = $status;
+                $this->updateSummary($result['summary'], $status);
+            }
+        }
+
+        // Системные серверы (HTTP/TCP проверки)
+        if ($this->config['system_servers']['enabled'] ?? false) {
+            foreach ($this->config['system_servers']['servers'] as $server) {
+                $monitor = new SystemServerMonitor($server, $this->cache_ttl);
+                $status = $monitor->getServerStatus();
+                $result['system_servers'][] = $status;
                 $this->updateSummary($result['summary'], $status);
             }
         }
@@ -235,6 +247,19 @@ class ServerMonitor {
                 'usage' => $interface['metrics']['usage_percent'] ?? 0,
                 'rx_rate' => $interface['metrics']['rx_rate_formatted'] ?? '0 bps',
                 'tx_rate' => $interface['metrics']['tx_rate_formatted'] ?? '0 bps',
+            ];
+        }
+
+        // System Servers (HTTP/TCP)
+        foreach ($allStatus['system_servers'] as $server) {
+            $simple[] = [
+                'id' => $server['id'],
+                'name' => $server['name'],
+                'type' => 'System',
+                'status' => $server['status'],
+                'online' => $server['online'],
+                'response_time' => $server['metrics']['response_time'] ?? 0,
+                'response_time_formatted' => $server['metrics']['response_time_formatted'] ?? 'N/A',
             ];
         }
 
