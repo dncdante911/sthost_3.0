@@ -77,101 +77,44 @@ $contact_info = [
 ];
 
 // ===========================================
-// МОНІТОРИНГ СЕРВЕРІВ
+// МОНІТОРИНГ СЕРВЕРІВ (через API)
 // ===========================================
-
-/**
- * Перевірка HTTP
- */
-function check_server($url, $timeout = 5) {
-    $start = microtime(true);
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => $timeout,
-        CURLOPT_CONNECTTIMEOUT => $timeout,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_NOBODY => true,
-    ]);
-
-    curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curl_error = curl_errno($ch);
-    curl_close($ch);
-
-    $response_time = round((microtime(true) - $start) * 1000);
-    $is_online = ($curl_error === 0 && $http_code >= 200 && $http_code < 400);
-
-    return [
-        'online' => $is_online,
-        'response_time' => $is_online ? $response_time : 0
-    ];
-}
-
-// Сервери для моніторингу (тільки зовнішні)
-$servers_config = [
-    [
-        'name' => 'Основний сервер',
-        'url' => 'https://sthost.pro',
-        'icon' => 'server',
-        'color' => '#3b82f6'
-    ],
-    [
-        'name' => 'DNS ns1',
-        'url' => 'http://195.22.131.11',
-        'icon' => 'globe',
-        'color' => '#8b5cf6'
-    ],
-    [
-        'name' => 'DNS ns2',
-        'url' => 'http://46.232.232.38',
-        'icon' => 'globe',
-        'color' => '#06b6d4'
-    ],
-    [
-        'name' => 'Клієнтська панель',
-        'url' => 'https://my.sthost.pro',
-        'icon' => 'users',
-        'color' => '#10b981'
-    ]
-];
-
-// Кешування (60 секунд)
-$cache_file = sys_get_temp_dir() . '/sthost_status_v2.json';
-$cache_ttl = 60;
-$force_refresh = isset($_GET['refresh']);
 
 $server_status = [];
 
-if (!$force_refresh && file_exists($cache_file)) {
-    $cache = json_decode(file_get_contents($cache_file), true);
-    if ($cache && (time() - $cache['time']) < $cache_ttl) {
-        $server_status = $cache['data'];
+// Отримуємо дані з API
+$api_url = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . '/api/monitoring/status.php';
+
+$ch = curl_init();
+curl_setopt_array($ch, [
+    CURLOPT_URL => $api_url,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 15,
+    CURLOPT_SSL_VERIFYPEER => false,
+]);
+
+$response = curl_exec($ch);
+curl_close($ch);
+
+if ($response) {
+    $data = json_decode($response, true);
+    if ($data && $data['success'] && isset($data['data'])) {
+        $server_status = $data['data'];
     }
 }
 
+// Якщо API не відповів - показуємо заглушку
 if (empty($server_status)) {
-    foreach ($servers_config as $server) {
-        $result = check_server($server['url'], 5);
-
-        $server_status[] = [
-            'name' => $server['name'],
-            'icon' => $server['icon'],
-            'color' => $server['color'],
-            'online' => $result['online'],
-            'response_time' => $result['response_time'],
-            'uptime' => $result['online'] ? rand(998, 1000) / 10 : 0 // Симуляція uptime
-        ];
-    }
-
-    file_put_contents($cache_file, json_encode([
-        'time' => time(),
-        'data' => $server_status
-    ]));
+    $server_status = [
+        [
+            'id' => 'loading',
+            'name' => 'Завантаження...',
+            'color' => '#9ca3af',
+            'online' => false,
+            'response_time' => 0,
+            'metrics' => []
+        ]
+    ];
 }
 
 // Обробка форми зворотного зв'язку
@@ -557,16 +500,20 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                 <?php foreach ($server_status as $server): ?>
                     <div class="monitor-card <?php echo $server['online'] ? 'is-online' : 'is-offline'; ?>">
                         <div class="monitor-visual">
-                            <div class="monitor-circle" style="--color: <?php echo $server['color']; ?>">
+                            <div class="monitor-circle" style="--color: <?php echo htmlspecialchars($server['color']); ?>">
                                 <svg viewBox="0 0 100 100">
                                     <circle class="monitor-bg" cx="50" cy="50" r="45"/>
                                     <?php if ($server['online']): ?>
                                     <circle class="monitor-progress" cx="50" cy="50" r="45"
-                                            style="stroke-dasharray: <?php echo $server['uptime'] * 2.83; ?> 283"/>
+                                            style="stroke-dasharray: 283 283"/>
                                     <?php endif; ?>
                                 </svg>
                                 <div class="monitor-icon">
-                                    <i class="icon-<?php echo $server['icon']; ?>"></i>
+                                    <?php if ($server['online']): ?>
+                                        <i class="icon-check-circle"></i>
+                                    <?php else: ?>
+                                        <i class="icon-x-circle"></i>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -592,10 +539,17 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
                                     <span class="stat-value"><?php echo $server['response_time']; ?></span>
                                     <span class="stat-label">ms</span>
                                 </div>
+                                <?php if (isset($server['metrics']['cpu'])): ?>
                                 <div class="stat">
-                                    <span class="stat-value"><?php echo number_format($server['uptime'], 1); ?></span>
-                                    <span class="stat-label">% uptime</span>
+                                    <span class="stat-value"><?php echo $server['metrics']['cpu']; ?>%</span>
+                                    <span class="stat-label">CPU</span>
                                 </div>
+                                <?php elseif (isset($server['metrics']['backends'])): ?>
+                                <div class="stat">
+                                    <span class="stat-value"><?php echo $server['metrics']['backends']; ?></span>
+                                    <span class="stat-label">backends</span>
+                                </div>
+                                <?php endif; ?>
                             </div>
                             <?php endif; ?>
                         </div>
