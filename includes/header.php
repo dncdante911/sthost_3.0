@@ -24,6 +24,7 @@ $page = $page_parts[1] ?? '';
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/assets/img/favicon.svg">
+    <link rel="alternate icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
@@ -43,1066 +44,817 @@ $page = $page_parts[1] ?? '';
     <?php endif; ?>
 
 <style>
-/* ===== WOW HEADER STYLES ===== */
-:root {
-    --header-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --header-glass: rgba(255, 255, 255, 0.1);
-    --header-text: #ffffff;
-    --header-hover: rgba(255, 255, 255, 0.15);
-    --accent-color: #f59e0b;
-    --transition-fast: 0.2s ease;
-    --transition-normal: 0.3s ease;
-}
-
-/* Main Header */
-.wow-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    transition: all var(--transition-normal);
-}
-
-.wow-header .header-bg {
-    background: var(--header-gradient);
-    transition: all var(--transition-normal);
-}
-
-.wow-header.scrolled .header-bg {
-    background: rgba(102, 126, 234, 0.95);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
-}
-
-.header-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 70px;
-}
-
-/* Logo */
-.header-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    color: var(--header-text);
-    font-weight: 700;
-    font-size: 1.4rem;
-    transition: transform var(--transition-fast);
-}
-
-.header-logo:hover {
-    transform: scale(1.05);
-    color: var(--header-text);
-}
-
-.header-logo img {
-    height: 38px;
-    filter: brightness(0) invert(1);
-}
-
-.logo-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.1;
-}
-
-.logo-text .main {
-    font-size: 1.2rem;
-}
-
-.logo-text .sub {
-    font-size: 0.65rem;
-    opacity: 0.8;
-    font-weight: 400;
-    letter-spacing: 1px;
-}
-
-/* Navigation */
-.header-nav {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.nav-item {
-    position: relative;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 16px;
-    color: var(--header-text);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.9rem;
-    border-radius: 10px;
-    transition: all var(--transition-fast);
-    position: relative;
-}
-
-.nav-link:hover {
-    background: var(--header-hover);
-    color: var(--header-text);
-}
-
-.nav-link i.arrow {
-    font-size: 0.7rem;
-    transition: transform var(--transition-fast);
-}
-
-.nav-item:hover .nav-link i.arrow {
-    transform: rotate(180deg);
-}
-
-/* Mega Dropdown */
-.mega-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    opacity: 0;
-    visibility: hidden;
-    transition: all var(--transition-normal);
-    min-width: 280px;
-    padding: 12px;
-    pointer-events: none;
-}
-
-.nav-item:hover .mega-dropdown {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-    pointer-events: auto;
-}
-
-.mega-dropdown::before {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 8px solid transparent;
-    border-bottom-color: white;
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    color: #374151;
-    text-decoration: none;
-    border-radius: 10px;
-    transition: all var(--transition-fast);
-}
-
-.dropdown-item:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-    color: #667eea;
-    transform: translateX(5px);
-}
-
-.dropdown-item i {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-    border-radius: 8px;
-    color: #667eea;
-    font-size: 1rem;
-}
-
-.dropdown-item:hover i {
-    background: var(--header-gradient);
-    color: white;
-}
-
-.dropdown-content {
-    flex: 1;
-}
-
-.dropdown-title {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 2px;
-}
-
-.dropdown-desc {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-
-.dropdown-divider {
-    height: 1px;
-    background: #e5e7eb;
-    margin: 8px 0;
-}
-
-/* Wide Dropdown for Services */
-.mega-dropdown.wide {
-    min-width: 600px;
-    padding: 20px;
-}
-
-.dropdown-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-}
-
-.dropdown-header {
-    grid-column: 1 / -1;
-    padding: 8px 16px;
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 0.85rem;
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 8px;
-}
-
-/* Auth Buttons */
-.header-auth {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.auth-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 25px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: all var(--transition-fast);
-    border: 2px solid transparent;
-}
-
-.auth-btn.login {
-    color: var(--header-text);
-    border-color: rgba(255, 255, 255, 0.3);
-    background: transparent;
-}
-
-.auth-btn.login:hover {
-    background: white;
-    color: #667eea;
-    border-color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.auth-btn.register {
-    background: white;
-    color: #667eea;
-    border-color: white;
-}
-
-.auth-btn.register:hover {
-    background: transparent;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* User Menu */
-.user-menu {
-    position: relative;
-}
-
-.user-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 12px 6px 6px;
-    background: var(--header-glass);
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    border: none;
-    color: white;
-}
-
-.user-toggle:hover {
-    background: var(--header-hover);
-}
-
-.user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: white;
-    color: #667eea;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.user-name {
-    font-weight: 500;
-    font-size: 0.85rem;
-}
-
-.user-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    min-width: 220px;
-    padding: 8px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px);
-    transition: all var(--transition-normal);
-}
-
-.user-menu:hover .user-dropdown {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-}
-
-.user-dropdown-header {
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 8px;
-}
-
-.user-dropdown-name {
-    font-weight: 600;
-    color: #1f2937;
-    font-size: 0.9rem;
-}
-
-.user-dropdown-email {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-
-.user-dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    color: #374151;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    transition: all var(--transition-fast);
-}
-
-.user-dropdown-item:hover {
-    background: #f3f4f6;
-    color: #667eea;
-}
-
-.user-dropdown-item i {
-    width: 20px;
-    text-align: center;
-    opacity: 0.7;
-}
-
-.user-dropdown-item.logout {
-    color: #ef4444;
-    margin-top: 8px;
-    border-top: 1px solid #e5e7eb;
-    padding-top: 18px;
-}
-
-.user-dropdown-item.logout:hover {
-    background: #fef2f2;
-    color: #dc2626;
-}
-
-/* Mobile Toggle */
-.mobile-toggle {
-    display: none;
-    background: var(--header-glass);
-    border: none;
-    color: white;
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.mobile-toggle:hover {
-    background: var(--header-hover);
-}
-
-.mobile-toggle span {
-    display: block;
-    width: 20px;
-    height: 2px;
-    background: white;
-    margin: 4px auto;
-    transition: all var(--transition-fast);
-    border-radius: 1px;
-}
-
-/* Mobile Menu */
-.mobile-menu {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 100%;
-    max-width: 400px;
-    height: 100vh;
-    background: white;
-    z-index: 9999;
-    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto;
-}
-
-.mobile-menu.open {
-    right: 0;
-}
-
-.mobile-menu-header {
-    background: var(--header-gradient);
-    padding: 20px;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.mobile-menu-close {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.mobile-menu-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-}
-
-.mobile-menu-content {
-    padding: 20px;
-}
-
-.mobile-nav-section {
-    margin-bottom: 20px;
-}
-
-.mobile-nav-title {
-    font-weight: 600;
-    color: #1f2937;
-    padding: 10px 0;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-}
-
-.mobile-nav-title i.arrow {
-    margin-left: auto;
-    transition: transform var(--transition-fast);
-}
-
-.mobile-nav-title.open i.arrow {
-    transform: rotate(180deg);
-}
-
-.mobile-nav-items {
-    display: none;
-    padding-left: 10px;
-}
-
-.mobile-nav-items.show {
-    display: block;
-}
-
-.mobile-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    color: #4b5563;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    transition: all var(--transition-fast);
-}
-
-.mobile-nav-item:hover {
-    background: #f3f4f6;
-    color: #667eea;
-}
-
-.mobile-nav-item i {
-    width: 20px;
-    text-align: center;
-    opacity: 0.7;
-}
-
-.mobile-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    z-index: 9998;
-    opacity: 0;
-    visibility: hidden;
-    transition: all var(--transition-normal);
-}
-
-.mobile-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Body padding for fixed header */
-body {
-    padding-top: 70px;
-}
-
-/* Responsive */
-@media (max-width: 1100px) {
-    .header-nav {
-        display: none;
-    }
-
-    .mobile-toggle {
-        display: block;
-    }
-}
-
-@media (max-width: 576px) {
-    .header-logo .logo-text {
-        display: none;
-    }
-
-    .header-auth .auth-btn span {
-        display: none;
-    }
-
-    .header-auth .auth-btn {
-        padding: 8px 12px;
-    }
-}
-
-/* CTA Badge */
-.nav-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: var(--accent-color);
-    color: white;
-    font-size: 0.6rem;
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-weight: 600;
-}
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary-color: #6366f1;
+            --text-color: #1f2937;
+            --bg-color: #ffffff;
+            --border-color: #e5e7eb;
+            --menu-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .navbar {
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            color: #f0f8ff !important;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 0.75rem;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Navigation Links */
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.75rem 1rem;
+            margin: 0 0.25rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .navbar-nav .nav-link.active {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn-auth-header {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-login {
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: transparent;
+        }
+
+        .btn-login:hover {
+            color: #667eea;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-register {
+            color: #667eea;
+            background: white;
+            border-color: white;
+        }
+
+        .btn-register:hover {
+            color: white;
+            background: transparent;
+            border-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-logout {
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: transparent;
+        }
+
+        .btn-logout:hover {
+            color: #dc3545;
+            background: white;
+            border-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* User Info */
+        .user-info {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Menu Toggle Button */
+        .menu-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+
+        .menu-icon span {
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: currentColor;
+            transition: all 0.3s ease;
+            border-radius: 1px;
+        }
+
+        .menu-icon span:nth-child(1) { transform: translateY(-6px); }
+        .menu-icon span:nth-child(3) { transform: translateY(6px); }
+
+        /* Slide Menu */
+        .slide-menu {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 420px;
+            height: 100vh;
+            background: var(--menu-bg);
+            backdrop-filter: blur(20px);
+            box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            overflow-y: auto;
+        }
+
+        .slide-menu.open {
+            right: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .menu-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .menu-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .menu-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .menu-content {
+            padding: 1.5rem;
+        }
+
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-section-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-section-title:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+        }
+
+        .menu-items {
+            display: none;
+            padding-left: 1rem;
+        }
+
+        .menu-items.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-bottom: 0.25rem;
+        }
+
+        .menu-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        .menu-item-content {
+            flex: 1;
+        }
+
+        .menu-item-title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .menu-item-desc {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .quick-action-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide-menu {
+                width: 100%;
+                right: -100%;
+            }
+
+            .navbar-nav {
+                display: none;
+            }
+
+            .auth-buttons {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+
+            .btn-auth-header {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.875rem;
+            }
+
+            .user-info {
+                flex-direction: column;
+                align-items: flex-end;
+                margin-right: 0.5rem;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .menu-toggle {
+                margin-left: 1rem;
+            }
+        }
 </style>
-
+ 
 </head>
 <body>
-    <!-- WOW Header -->
-    <header class="wow-header" id="wowHeader">
-        <div class="header-bg">
-            <div class="header-container">
-                <div class="header-content">
-                    <!-- Logo -->
-                    <a href="/" class="header-logo">
-                        <img src="/assets/img/logo.svg" alt="StormHosting">
-                        <div class="logo-text">
-                            <span class="main">StormHosting</span>
-                            <span class="sub">ХОСТИНГ ПРОВАЙДЕР</span>
-                        </div>
-                    </a>
+    <!-- Main Header -->
+    <header class="main-header">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <!-- Brand Logo -->
+                <a class="navbar-brand" href="/">
+                    <img src="/assets/img/logo.svg" alt="StormHosting UA" style="height: 40px; margin-right: 10px;">
+                </a>
 
-                    <!-- Desktop Navigation -->
-                    <nav class="header-nav">
-                        <!-- Domains -->
-                        <div class="nav-item">
-                            <a href="/pages/domains/domains.php" class="nav-link">
-                                <span>Домени</span>
-                                <i class="bi bi-chevron-down arrow"></i>
-                            </a>
-                            <div class="mega-dropdown">
-                                <a href="/pages/domains/register.php" class="dropdown-item">
-                                    <i class="bi bi-plus-circle"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Реєстрація</div>
-                                        <div class="dropdown-desc">Зареєструйте новий домен</div>
-                                    </div>
-                                </a>
-                                <a href="/pages/domains/transfer.php" class="dropdown-item">
-                                    <i class="bi bi-arrow-left-right"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Трансфер</div>
-                                        <div class="dropdown-desc">Перенесіть домен до нас</div>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a href="/pages/domains/whois.php" class="dropdown-item">
-                                    <i class="bi bi-search"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">WHOIS</div>
-                                        <div class="dropdown-desc">Перевірка власника</div>
-                                    </div>
-                                </a>
-                                <a href="/pages/domains/dns.php" class="dropdown-item">
-                                    <i class="bi bi-diagram-3"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">DNS перевірка</div>
-                                        <div class="dropdown-desc">Діагностика записів</div>
-                                    </div>
-                                </a>
+                <!-- Main Navigation (Desktop) -->
+                <ul class="navbar-nav mx-auto d-none d-lg-flex">
+                    <li class="nav-item">
+                        <a class="nav-link<?php echo ($page === '' || $page === 'index') ? ' active' : ''; ?>" href="/">
+                            Головна
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pages/contacts.php">
+                            Контакти
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Auth Buttons & Menu Toggle -->
+                <div class="d-flex align-items-center">
+                    <?php if ($user_logged_in): ?>
+                        <!-- Информация о пользователе -->
+                        <div class="user-info d-none d-sm-flex">
+                            <div class="user-avatar">
+                                <?php echo strtoupper(substr($user_name, 0, 1)); ?>
                             </div>
-                        </div>
-
-                        <!-- Hosting -->
-                        <div class="nav-item">
-                            <a href="/pages/hosting/hosting.php" class="nav-link">
-                                <span>Хостинг</span>
-                                <i class="bi bi-chevron-down arrow"></i>
-                            </a>
-                            <div class="mega-dropdown wide">
-                                <div class="dropdown-grid">
-                                    <a href="/pages/hosting/shared.php" class="dropdown-item">
-                                        <i class="bi bi-hdd-stack"></i>
-                                        <div class="dropdown-content">
-                                            <div class="dropdown-title">Спільний хостинг</div>
-                                            <div class="dropdown-desc">Ідеально для сайтів</div>
-                                        </div>
-                                    </a>
-                                    <a href="/pages/hosting/reseller.php" class="dropdown-item">
-                                        <i class="bi bi-people"></i>
-                                        <div class="dropdown-content">
-                                            <div class="dropdown-title">Реселер</div>
-                                            <div class="dropdown-desc">Продавайте хостинг</div>
-                                        </div>
-                                    </a>
-                                    <a href="/pages/hosting/cloud.php" class="dropdown-item">
-                                        <i class="bi bi-cloud"></i>
-                                        <div class="dropdown-content">
-                                            <div class="dropdown-title">Cloud сховище</div>
-                                            <div class="dropdown-desc">Файли у хмарі</div>
-                                        </div>
-                                    </a>
-                                    <a href="/pages/info/ssl.php" class="dropdown-item">
-                                        <i class="bi bi-shield-lock"></i>
-                                        <div class="dropdown-content">
-                                            <div class="dropdown-title">SSL сертифікати</div>
-                                            <div class="dropdown-desc">Захист з'єднання</div>
-                                        </div>
-                                    </a>
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.85rem;">
+                                    <?php echo htmlspecialchars($user_name); ?>
+                                </div>
+                                <div style="font-size: 0.75rem; opacity: 0.8;">
+                                    <?php echo htmlspecialchars($user_email); ?>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- VDS/VPS -->
-                        <div class="nav-item">
-                            <a href="/pages/vds/virtual.php" class="nav-link">
-                                <span>VDS/VPS</span>
-                                <i class="bi bi-chevron-down arrow"></i>
+                        <!-- Кнопка выхода -->
+                        <div class="auth-buttons me-3">
+                            <a href="/auth/logout.php" class="btn-auth-header btn-logout" onclick="return confirm('Ви впевнені, що хочете вийти?')">
+                                <i class="bi bi-box-arrow-right"></i>
+                                Вийти
                             </a>
-                            <div class="mega-dropdown">
-                                <a href="/pages/vds/virtual.php" class="dropdown-item">
-                                    <i class="bi bi-cpu"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Віртуальні сервери</div>
-                                        <div class="dropdown-desc">KVM VPS</div>
-                                    </div>
-                                </a>
-                                <a href="/pages/vds/dedicated.php" class="dropdown-item">
-                                    <i class="bi bi-pc-display-horizontal"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Виділені сервери</div>
-                                        <div class="dropdown-desc">Фізичні сервери</div>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a href="/pages/vds/vds-calc.php" class="dropdown-item">
-                                    <i class="bi bi-calculator"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Калькулятор</div>
-                                        <div class="dropdown-desc">Розрахунок вартості</div>
-                                    </div>
-                                </a>
-                            </div>
                         </div>
-
-                        <!-- Tools -->
-                        <div class="nav-item">
-                            <a href="#" class="nav-link">
-                                <span>Інструменти</span>
-                                <i class="bi bi-chevron-down arrow"></i>
-                            </a>
-                            <div class="mega-dropdown">
-                                <a href="/pages/tools/site-check.php" class="dropdown-item">
-                                    <i class="bi bi-globe2"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Перевірка сайту</div>
-                                        <div class="dropdown-desc">Доступність online</div>
-                                    </div>
-                                </a>
-                                <a href="/pages/tools/ip-check.php" class="dropdown-item">
-                                    <i class="bi bi-router"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Перевірка IP</div>
-                                        <div class="dropdown-desc">Геолокація та інфо</div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- Info -->
-                        <div class="nav-item">
-                            <a href="/pages/info/about.php" class="nav-link">
-                                <span>Інфо</span>
-                                <i class="bi bi-chevron-down arrow"></i>
-                            </a>
-                            <div class="mega-dropdown">
-                                <a href="/pages/info/about.php" class="dropdown-item">
-                                    <i class="bi bi-building"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Про компанію</div>
-                                        <div class="dropdown-desc">Наша історія</div>
-                                    </div>
-                                </a>
-                                <a href="/pages/info/quality.php" class="dropdown-item">
-                                    <i class="bi bi-shield-check"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Гарантія якості</div>
-                                        <div class="dropdown-desc">SLA та стандарти</div>
-                                    </div>
-                                </a>
-                                <a href="/pages/info/faq.php" class="dropdown-item">
-                                    <i class="bi bi-question-circle"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">FAQ</div>
-                                        <div class="dropdown-desc">Часті питання</div>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a href="/pages/contacts.php" class="dropdown-item">
-                                    <i class="bi bi-telephone"></i>
-                                    <div class="dropdown-content">
-                                        <div class="dropdown-title">Контакти</div>
-                                        <div class="dropdown-desc">Зв'яжіться з нами</div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    </nav>
-
-                    <!-- Auth / User -->
-                    <div class="header-auth">
-                        <?php if ($user_logged_in): ?>
-                            <div class="user-menu">
-                                <button class="user-toggle">
-                                    <div class="user-avatar">
-                                        <?php echo strtoupper(substr($user_name, 0, 1)); ?>
-                                    </div>
-                                    <span class="user-name d-none d-sm-inline"><?php echo htmlspecialchars($user_name); ?></span>
-                                    <i class="bi bi-chevron-down" style="font-size: 0.7rem;"></i>
-                                </button>
-                                <div class="user-dropdown">
-                                    <div class="user-dropdown-header">
-                                        <div class="user-dropdown-name"><?php echo htmlspecialchars($user_name); ?></div>
-                                        <div class="user-dropdown-email"><?php echo htmlspecialchars($user_email); ?></div>
-                                    </div>
-                                    <a href="/client/dashboard-new.php" class="user-dropdown-item">
-                                        <i class="bi bi-speedometer2"></i>
-                                        <span>Панель управління</span>
-                                    </a>
-                                    <a href="/client/profile.php" class="user-dropdown-item">
-                                        <i class="bi bi-person-gear"></i>
-                                        <span>Налаштування</span>
-                                    </a>
-                                    <a href="/auth/logout.php" class="user-dropdown-item logout" onclick="return confirm('Вийти з системи?')">
-                                        <i class="bi bi-box-arrow-right"></i>
-                                        <span>Вийти</span>
-                                    </a>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <a href="#" class="auth-btn login" data-open-login>
+                    <?php else: ?>
+                        <!-- Кнопки авторизации для неавторизованных -->
+                        <div class="auth-buttons me-3">
+                            <a href="#" class="btn-auth-header btn-login" data-open-login>
                                 <i class="bi bi-box-arrow-in-right"></i>
-                                <span>Вхід</span>
+                                Вхід
                             </a>
-                            <a href="#" class="auth-btn register" data-open-register>
+                            <a href="#" class="btn-auth-header btn-register" data-open-register>
                                 <i class="bi bi-person-plus"></i>
-                                <span>Реєстрація</span>
+                                Реєстрація
                             </a>
-                        <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
 
-                        <!-- Mobile Toggle -->
-                        <button class="mobile-toggle" id="mobileToggle">
+                    <!-- Menu Toggle Button -->
+                    <button type="button" class="menu-toggle" id="menuToggle">
+                        <div class="menu-icon">
                             <span></span>
                             <span></span>
                             <span></span>
-                        </button>
-                    </div>
+                        </div>
+                        <span class="d-none d-sm-inline">Меню</span>
+                    </button>
                 </div>
             </div>
-        </div>
+        </nav>
     </header>
 
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <div class="mobile-menu-header">
-            <span style="font-weight: 600; font-size: 1.1rem;">Меню</span>
-            <button class="mobile-menu-close" id="mobileClose">
+    <!-- Slide Menu -->
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-header">
+            <h3>Навігація</h3>
+            <?php if ($user_logged_in): ?>
+                <div class="d-sm-none mt-2" style="font-size: 0.9rem; opacity: 0.9;">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <?php echo htmlspecialchars($user_name); ?>
+                </div>
+            <?php endif; ?>
+            <button type="button" class="menu-close" id="menuClose">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
-        <div class="mobile-menu-content">
+
+        <div class="menu-content">
             <?php if ($user_logged_in): ?>
-                <div class="mobile-nav-section">
-                    <div class="mobile-nav-title">
+                <!-- Панель пользователя в меню -->
+                <div class="menu-section">
+                    <div class="menu-section-title">
                         <i class="bi bi-person-circle"></i>
-                        <span><?php echo htmlspecialchars($user_name); ?></span>
+                        <span>Мій кабінет</span>
                     </div>
-                    <div class="mobile-nav-items show">
-                        <a href="/client/dashboard-new.php" class="mobile-nav-item">
+                    <div class="menu-items show">
+                        <a href="/client/dashboard-new.php" class="menu-item">
                             <i class="bi bi-speedometer2"></i>
-                            <span>Панель управління</span>
+                            <div class="menu-item-content">
+                                <div class="menu-item-title">Панель управління</div>
+                                <div class="menu-item-desc">Головна сторінка кабінету</div>
+                            </div>
                         </a>
-                        <a href="/client/profile.php" class="mobile-nav-item">
+                        <a href="/client/profile.php" class="menu-item">
                             <i class="bi bi-person-gear"></i>
-                            <span>Налаштування</span>
+                            <div class="menu-item-content">
+                                <div class="menu-item-title">Налаштування профілю</div>
+                                <div class="menu-item-desc">Редагування даних</div>
+                            </div>
+                        </a>
+                        <a href="/auth/logout.php" class="menu-item" onclick="return confirm('Ви впевнені, що хочете вийти?')">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <div class="menu-item-content">
+                                <div class="menu-item-title">Вийти з системи</div>
+                                <div class="menu-item-desc">Завершити сеанс</div>
+                            </div>
                         </a>
                     </div>
                 </div>
             <?php endif; ?>
 
-            <!-- Domains -->
-            <div class="mobile-nav-section">
-                <div class="mobile-nav-title" onclick="toggleMobileNav(this)">
+            <!-- Domains Section -->
+            <div class="menu-section">
+                <div class="menu-section-title" onclick="toggleMenuSection('domains')">
                     <i class="bi bi-globe"></i>
                     <span>Домени</span>
-                    <i class="bi bi-chevron-down arrow"></i>
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </div>
-                <div class="mobile-nav-items">
-                    <a href="/pages/domains/register.php" class="mobile-nav-item">
+                <div class="menu-items" id="domains-items">
+                    <a href="/pages/domains/register.php" class="menu-item">
                         <i class="bi bi-plus-circle"></i>
-                        <span>Реєстрація</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Реєстрація доменів</div>
+                            <div class="menu-item-desc">Зареєструйте домен для вашого сайту</div>
+                        </div>
                     </a>
-                    <a href="/pages/domains/transfer.php" class="mobile-nav-item">
+                    <a href="/pages/domains/transfer.php" class="menu-item">
                         <i class="bi bi-arrow-left-right"></i>
-                        <span>Трансфер</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Трансфер доменів</div>
+                            <div class="menu-item-desc">Перенесіть домен до нас</div>
+                        </div>
                     </a>
-                    <a href="/pages/domains/whois.php" class="mobile-nav-item">
+                    <a href="/pages/domains/whois.php" class="menu-item">
                         <i class="bi bi-search"></i>
-                        <span>WHOIS</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">WHOIS перевірка</div>
+                            <div class="menu-item-desc">Інформація про домен</div>
+                        </div>
                     </a>
-                    <a href="/pages/domains/dns.php" class="mobile-nav-item">
+                    <a href="/pages/domains/dns.php" class="menu-item">
                         <i class="bi bi-diagram-3"></i>
-                        <span>DNS перевірка</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">DNS перевірка</div>
+                            <div class="menu-item-desc">Перевірка DNS записів</div>
+                        </div>
+                    </a>
+                    <a href="/pages/domains/domains.php" class="menu-item">
+                        <i class="bi bi-list-ul"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Всі домени</div>
+                            <div class="menu-item-desc">Перегляд доменних зон</div>
+                        </div>
                     </a>
                 </div>
             </div>
 
-            <!-- Hosting -->
-            <div class="mobile-nav-section">
-                <div class="mobile-nav-title" onclick="toggleMobileNav(this)">
+            <!-- Hosting Section -->
+            <div class="menu-section">
+                <div class="menu-section-title" onclick="toggleMenuSection('hosting')">
                     <i class="bi bi-server"></i>
                     <span>Хостинг</span>
-                    <i class="bi bi-chevron-down arrow"></i>
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </div>
-                <div class="mobile-nav-items">
-                    <a href="/pages/hosting/shared.php" class="mobile-nav-item">
-                        <i class="bi bi-hdd-stack"></i>
-                        <span>Спільний хостинг</span>
+                <div class="menu-items" id="hosting-items">
+                    <a href="/pages/hosting/shared.php" class="menu-item">
+                        <i class="bi bi-share"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Спільний хостинг</div>
+                            <div class="menu-item-desc">Оптимальний для сайтів</div>
+                        </div>
                     </a>
-                    <a href="/pages/hosting/reseller.php" class="mobile-nav-item">
+                    <a href="/pages/hosting/reseller.php" class="menu-item">
                         <i class="bi bi-people"></i>
-                        <span>Реселер</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Реселер хостинг</div>
+                            <div class="menu-item-desc">Продавайте хостинг клієнтам</div>
+                        </div>
                     </a>
-                    <a href="/pages/hosting/cloud.php" class="mobile-nav-item">
+                    <a href="/pages/hosting/cloud.php" class="menu-item">
                         <i class="bi bi-cloud"></i>
-                        <span>Cloud сховище</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Хмарне сховище</div>
+                            <div class="menu-item-desc">Зберігайте файли в хмарі</div>
+                        </div>
                     </a>
-                    <a href="/pages/info/ssl.php" class="mobile-nav-item">
-                        <i class="bi bi-shield-lock"></i>
-                        <span>SSL сертифікати</span>
+                    <a href="/pages/hosting/hosting.php" class="menu-item">
+                        <i class="bi bi-grid"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Всі тарифи</div>
+                            <div class="menu-item-desc">Порівняння планів</div>
+                        </div>
                     </a>
                 </div>
             </div>
 
-            <!-- VDS -->
-            <div class="mobile-nav-section">
-                <div class="mobile-nav-title" onclick="toggleMobileNav(this)">
-                    <i class="bi bi-cpu"></i>
+            <!-- VDS/VPS Section -->
+            <div class="menu-section">
+                <div class="menu-section-title" onclick="toggleMenuSection('vds')">
+                    <i class="bi bi-pc-display"></i>
                     <span>VDS/VPS</span>
-                    <i class="bi bi-chevron-down arrow"></i>
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </div>
-                <div class="mobile-nav-items">
-                    <a href="/pages/vds/virtual.php" class="mobile-nav-item">
+                <div class="menu-items" id="vds-items">
+                    <a href="/pages/vds/virtual.php" class="menu-item">
                         <i class="bi bi-cpu"></i>
-                        <span>Віртуальні сервери</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Віртуальні сервери</div>
+                            <div class="menu-item-desc">VPS на KVM</div>
+                        </div>
                     </a>
-                    <a href="/pages/vds/dedicated.php" class="mobile-nav-item">
+                    <a href="/pages/vds/dedicated.php" class="menu-item">
                         <i class="bi bi-pc-display-horizontal"></i>
-                        <span>Виділені сервери</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Виділені сервери</div>
+                            <div class="menu-item-desc">Фізичні сервери</div>
+                        </div>
                     </a>
-                    <a href="/pages/vds/vds-calc.php" class="mobile-nav-item">
+                    <a href="/pages/vds/vds-calc.php" class="menu-item">
                         <i class="bi bi-calculator"></i>
-                        <span>Калькулятор</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Калькулятор VDS</div>
+                            <div class="menu-item-desc">Розрахунок вартості</div>
+                        </div>
                     </a>
                 </div>
             </div>
 
-            <!-- Tools -->
-            <div class="mobile-nav-section">
-                <div class="mobile-nav-title" onclick="toggleMobileNav(this)">
+            <!-- Tools Section -->
+            <div class="menu-section">
+                <div class="menu-section-title" onclick="toggleMenuSection('tools')">
                     <i class="bi bi-tools"></i>
                     <span>Інструменти</span>
-                    <i class="bi bi-chevron-down arrow"></i>
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </div>
-                <div class="mobile-nav-items">
-                    <a href="/pages/tools/site-check.php" class="mobile-nav-item">
+                <div class="menu-items" id="tools-items">
+                    <a href="/pages/tools/site-check.php" class="menu-item">
                         <i class="bi bi-globe2"></i>
-                        <span>Перевірка сайту</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Перевірка сайту</div>
+                            <div class="menu-item-desc">Доступність сайту</div>
+                        </div>
                     </a>
-                    <a href="/pages/tools/ip-check.php" class="mobile-nav-item">
+                    <a href="/pages/tools/ip-check.php" class="menu-item">
                         <i class="bi bi-router"></i>
-                        <span>Перевірка IP</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Перевірка IP</div>
+                            <div class="menu-item-desc">Геолокація та безпека</div>
+                        </div>
                     </a>
                 </div>
             </div>
 
-            <!-- Info -->
-            <div class="mobile-nav-section">
-                <div class="mobile-nav-title" onclick="toggleMobileNav(this)">
+            <!-- Info Section -->
+            <div class="menu-section">
+                <div class="menu-section-title" onclick="toggleMenuSection('info')">
                     <i class="bi bi-info-circle"></i>
                     <span>Інформація</span>
-                    <i class="bi bi-chevron-down arrow"></i>
+                    <i class="bi bi-chevron-down ms-auto"></i>
                 </div>
-                <div class="mobile-nav-items">
-                    <a href="/pages/info/about.php" class="mobile-nav-item">
+                <div class="menu-items" id="info-items">
+                    <a href="/pages/info/about.php" class="menu-item">
                         <i class="bi bi-building"></i>
-                        <span>Про компанію</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Про компанію</div>
+                            <div class="menu-item-desc">Наша історія та місія</div>
+                        </div>
                     </a>
-                    <a href="/pages/info/quality.php" class="mobile-nav-item">
+                    <a href="/pages/info/quality.php" class="menu-item">
                         <i class="bi bi-shield-check"></i>
-                        <span>Гарантія якості</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Гарантія якості</div>
+                            <div class="menu-item-desc">SLA та стандарти</div>
+                        </div>
                     </a>
-                    <a href="/pages/info/faq.php" class="mobile-nav-item">
-                        <i class="bi bi-question-circle"></i>
-                        <span>FAQ</span>
-                    </a>
-                    <a href="/pages/info/rules.php" class="mobile-nav-item">
+                    <a href="/pages/info/rules.php" class="menu-item">
                         <i class="bi bi-file-text"></i>
-                        <span>Правила</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Правила надання послуг</div>
+                            <div class="menu-item-desc">Умови використання</div>
+                        </div>
                     </a>
-                    <a href="/pages/info/legal.php" class="mobile-nav-item">
+                    <a href="/pages/info/legal.php" class="menu-item">
                         <i class="bi bi-briefcase"></i>
-                        <span>Юридична інфо</span>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Юридична інформація</div>
+                            <div class="menu-item-desc">Реквізити компанії</div>
+                        </div>
                     </a>
-                    <a href="/pages/contacts.php" class="mobile-nav-item">
-                        <i class="bi bi-telephone"></i>
-                        <span>Контакти</span>
+                    <a href="/pages/info/faq.php" class="menu-item">
+                        <i class="bi bi-question-circle"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Часті питання</div>
+                            <div class="menu-item-desc">Відповіді на питання</div>
+                        </div>
+                    </a>
+                    <a href="/pages/info/ssl.php" class="menu-item">
+                        <i class="bi bi-shield-lock"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">SSL сертифікати</div>
+                            <div class="menu-item-desc">Захист та довіра</div>
+                        </div>
+                    </a>
+                    <a href="/pages/info/complaints.php" class="menu-item">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">Скарги та пропозиції</div>
+                            <div class="menu-item-desc">Зворотний зв'язок</div>
+                        </div>
                     </a>
                 </div>
             </div>
 
-            <?php if ($user_logged_in): ?>
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                    <a href="/auth/logout.php" class="mobile-nav-item" style="color: #ef4444;" onclick="return confirm('Вийти?')">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span>Вийти з системи</span>
-                    </a>
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="/pages/hosting/shared.php" class="quick-action-btn">
+                    <i class="bi bi-server me-2"></i>
+                    Замовити хостинг
+                </a>
+                <a href="/pages/domains/register.php" class="quick-action-btn">
+                    <i class="bi bi-globe me-2"></i>
+                    Купити домен
+                </a>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="menu-section">
+                <div class="menu-section-title">
+                    <i class="bi bi-telephone"></i>
+                    <span>Контакти</span>
                 </div>
-            <?php else: ?>
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; display: flex; gap: 10px;">
-                    <a href="#" class="btn btn-outline-primary flex-fill" data-open-login>Вхід</a>
-                    <a href="#" class="btn btn-primary flex-fill" data-open-register>Реєстрація</a>
+                <div class="menu-items show">
+                    <div class="menu-item">
+                        <i class="bi bi-telephone"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">+380 99 623 96 37</div>
+                            <div class="menu-item-desc">Цілодобово</div>
+                        </div>
+                    </div>
+                    <div class="menu-item">
+                        <i class="bi bi-envelope"></i>
+                        <div class="menu-item-content">
+                            <div class="menu-item-title">support@sthost.pro</div>
+                            <div class="menu-item-desc">Підтримка</div>
+                        </div>
+                    </div>
                 </div>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
 
-    <!-- Mobile Overlay -->
-    <div class="mobile-overlay" id="mobileOverlay"></div>
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay"></div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Modal Auth JS -->
+    
+    <!-- Modal Auth JS (только для неавторизованных пользователей) -->
     <?php if (!$user_logged_in): ?>
         <script src="/assets/js/modal-auth.js"></script>
     <?php endif; ?>
 
     <!-- Header JavaScript -->
     <script>
+        // Menu Toggle Functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const header = document.getElementById('wowHeader');
-            const mobileToggle = document.getElementById('mobileToggle');
-            const mobileMenu = document.getElementById('mobileMenu');
-            const mobileOverlay = document.getElementById('mobileOverlay');
-            const mobileClose = document.getElementById('mobileClose');
+            const menuToggle = document.getElementById('menuToggle');
+            const slideMenu = document.getElementById('slideMenu');
+            const menuOverlay = document.getElementById('menuOverlay');
+            const menuClose = document.getElementById('menuClose');
 
-            // Scroll effect
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            });
-
-            // Mobile menu
-            function openMobile() {
-                mobileMenu.classList.add('open');
-                mobileOverlay.classList.add('show');
+            // Open menu
+            function openMenu() {
+                slideMenu.classList.add('open');
+                menuOverlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
             }
 
-            function closeMobile() {
-                mobileMenu.classList.remove('open');
-                mobileOverlay.classList.remove('show');
+            // Close menu
+            function closeMenu() {
+                slideMenu.classList.remove('open');
+                menuOverlay.classList.remove('show');
                 document.body.style.overflow = '';
             }
 
-            mobileToggle.addEventListener('click', openMobile);
-            mobileClose.addEventListener('click', closeMobile);
-            mobileOverlay.addEventListener('click', closeMobile);
+            // Event listeners
+            menuToggle.addEventListener('click', openMenu);
+            menuClose.addEventListener('click', closeMenu);
+            menuOverlay.addEventListener('click', closeMenu);
 
+            // Close menu on ESC key
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeMobile();
+                if (e.key === 'Escape' && slideMenu.classList.contains('open')) {
+                    closeMenu();
+                }
             });
 
-            // Init auth modal
+            // Initialize Auth Modal only for non-logged users
             <?php if (!$user_logged_in): ?>
                 if (typeof AuthModal !== 'undefined') {
                     window.authModal = new AuthModal();
@@ -1110,19 +862,31 @@ body {
             <?php endif; ?>
         });
 
-        // Toggle mobile nav sections
-        function toggleMobileNav(element) {
-            const items = element.nextElementSibling;
-            const isOpen = items.classList.contains('show');
-
-            // Close all
-            document.querySelectorAll('.mobile-nav-items').forEach(el => el.classList.remove('show'));
-            document.querySelectorAll('.mobile-nav-title').forEach(el => el.classList.remove('open'));
-
-            // Open current if was closed
-            if (!isOpen) {
+        // Toggle menu sections
+        function toggleMenuSection(sectionId) {
+            const items = document.getElementById(sectionId + '-items');
+            const title = event.currentTarget;
+            const chevron = title.querySelector('.bi-chevron-down');
+            
+            if (items.classList.contains('show')) {
+                items.classList.remove('show');
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                // Close all other sections
+                document.querySelectorAll('.menu-items.show').forEach(item => {
+                    if (item.id !== sectionId + '-items' && !item.closest('.menu-section').querySelector('.menu-section-title').textContent.includes('Контакти') && !item.closest('.menu-section').querySelector('.menu-section-title').textContent.includes('Мій кабінет')) {
+                        item.classList.remove('show');
+                    }
+                });
+                document.querySelectorAll('.bi-chevron-down').forEach(icon => {
+                    if (icon !== chevron) {
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                });
+                
+                // Open current section
                 items.classList.add('show');
-                element.classList.add('open');
+                chevron.style.transform = 'rotate(180deg)';
             }
         }
     </script>
