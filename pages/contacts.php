@@ -120,6 +120,10 @@ try {
                 $load = isset($server['usage']) ? round($server['usage']) . '%' : 'N/A';
                 $uptime = isset($server['rx_rate']) ? $server['rx_rate'] : 'N/A';
                 $response_time = isset($server['tx_rate']) ? $server['tx_rate'] : 'N/A';
+            } elseif ($server_type === 'System') {
+                $load = 'HTTP';
+                $uptime = 'Check';
+                $response_time = isset($server['response_time_formatted']) ? $server['response_time_formatted'] : 'N/A';
             }
 
             $server_status[$server['id'] ?? 'unknown'] = [
