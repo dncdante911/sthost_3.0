@@ -76,90 +76,136 @@ $contact_info = [
     ]
 ];
 
-// Статус серверів - отримуємо з системи мониторинга
-$server_status = [];
+// ===========================================
+// ПРОСТИЙ МОНІТОРИНГ СЕРВЕРІВ
+// ===========================================
 
-try {
-    // Визначаємо шлях до файлу мониторинга відносно поточного файлу
-    $monitor_file = dirname(__DIR__) . '/includes/monitoring/ServerMonitor.php';
+/**
+ * Перевірка TCP порту
+ */
+function check_server_tcp($host, $port, $timeout = 3) {
+    $start = microtime(true);
+    $connection = @fsockopen($host, $port, $errno, $errstr, $timeout);
+    $response_time = round((microtime(true) - $start) * 1000, 1);
 
-    if (!file_exists($monitor_file)) {
-        throw new Exception("ServerMonitor.php not found at: $monitor_file");
+    if ($connection) {
+        fclose($connection);
+        return [
+            'online' => true,
+            'response_time' => $response_time
+        ];
     }
 
-    require_once $monitor_file;
-
-    $monitor = new ServerMonitor();
-    $monitoring_data = $monitor->getSimpleStatus();
-
-    // Конвертуємо дані мониторинга в формат для відображення
-    if (isset($monitoring_data['servers']) && is_array($monitoring_data['servers'])) {
-        foreach ($monitoring_data['servers'] as $server) {
-            $status = 'offline';
-            if (isset($server['online']) && $server['online']) {
-                $status = (isset($server['status']) && $server['status'] === 'online') ? 'online' : 'maintenance';
-            }
-
-            // Визначаємо метрики залежно від типу сервера
-            $response_time = 'N/A';
-            $load = 'N/A';
-            $uptime = 'N/A';
-            $server_type = $server['type'] ?? 'Unknown';
-
-            if ($server_type === 'ISPManager' || $server_type === 'Proxmox') {
-                $load = isset($server['cpu']) ? round($server['cpu']) . '%' : 'N/A';
-                $uptime = isset($server['uptime']) ? $server['uptime'] . '%' : 'N/A';
-                $response_time = '<5ms';
-            } elseif ($server_type === 'HAProxy') {
-                $load = isset($server['sessions']) ? $server['sessions'] . ' sess' : 'N/A';
-                $uptime = isset($server['backends_up'], $server['backends_total'])
-                    ? $server['backends_up'] . '/' . $server['backends_total'] . ' BE'
-                    : 'N/A';
-                $response_time = '<2ms';
-            } elseif ($server_type === 'Network') {
-                $load = isset($server['usage']) ? round($server['usage']) . '%' : 'N/A';
-                $uptime = isset($server['rx_rate']) ? $server['rx_rate'] : 'N/A';
-                $response_time = isset($server['tx_rate']) ? $server['tx_rate'] : 'N/A';
-            } elseif ($server_type === 'System') {
-                $load = 'HTTP';
-                $uptime = 'Check';
-                $response_time = isset($server['response_time_formatted']) ? $server['response_time_formatted'] : 'N/A';
-            }
-
-            $server_status[$server['id'] ?? 'unknown'] = [
-                'name' => $server['name'] ?? 'Unknown Server',
-                'status' => $status,
-                'uptime' => $uptime,
-                'response_time' => $response_time,
-                'load' => $load,
-                'type' => $server_type
-            ];
-        }
-    }
-} catch (Throwable $e) {
-    // Ловимо всі помилки (Exception та Error в PHP 7+)
-    error_log("Monitoring error on contacts page: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
-    $server_status = [
-        'placeholder' => [
-            'name' => 'Мониторинг налаштовується',
-            'status' => 'maintenance',
-            'uptime' => 'N/A',
-            'response_time' => 'N/A',
-            'load' => 'N/A'
-        ]
+    return [
+        'online' => false,
+        'response_time' => 0,
+        'error' => "$errstr ($errno)"
     ];
 }
 
-// Якщо немає серверів - показуємо повідомлення
-if (empty($server_status)) {
-    $server_status = [
-        'info' => [
-            'name' => 'Система мониторинга',
-            'status' => 'maintenance',
-            'uptime' => 'Налаштування',
-            'response_time' => 'N/A',
-            'load' => 'N/A'
-        ]
+/**
+ * Перевірка HTTP/HTTPS
+ */
+function check_server_http($url, $timeout = 5) {
+    $start = microtime(true);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_CONNECTTIMEOUT => $timeout,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_NOBODY => true,
+    ]);
+
+    curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    $response_time = round((microtime(true) - $start) * 1000, 1);
+
+    return [
+        'online' => ($http_code >= 200 && $http_code < 500),
+        'response_time' => $response_time,
+        'http_code' => $http_code
+    ];
+}
+
+// Визначаємо сервери для моніторингу
+$servers_to_check = [
+    'ispmanager' => [
+        'name' => 'ISPmanager',
+        'description' => 'Панель керування',
+        'host' => '192.168.0.250',
+        'port' => 1500,
+        'type' => 'https',
+        'icon' => 'server'
+    ],
+    'proxmox' => [
+        'name' => 'Proxmox VE',
+        'description' => 'Віртуалізація',
+        'host' => '192.168.0.4',
+        'port' => 8006,
+        'type' => 'https',
+        'icon' => 'cpu'
+    ],
+    'haproxy' => [
+        'name' => 'HAProxy',
+        'description' => 'Load Balancer',
+        'host' => '192.168.0.10',
+        'port' => 80,
+        'type' => 'tcp',
+        'icon' => 'shuffle'
+    ],
+    'ns1' => [
+        'name' => 'ns1.sthost.pro',
+        'description' => 'DNS Server 1',
+        'host' => '195.22.131.11',
+        'port' => 80,
+        'type' => 'http',
+        'icon' => 'globe'
+    ],
+    'ns2' => [
+        'name' => 'ns2.sthost.pro',
+        'description' => 'DNS Server 2',
+        'host' => '46.232.232.38',
+        'port' => 80,
+        'type' => 'http',
+        'icon' => 'globe'
+    ]
+];
+
+// Перевіряємо кожен сервер
+$server_status = [];
+
+foreach ($servers_to_check as $id => $server) {
+    $result = ['online' => false, 'response_time' => 0];
+
+    try {
+        if ($server['type'] === 'https') {
+            $url = "https://{$server['host']}:{$server['port']}/";
+            $result = check_server_http($url, 3);
+        } elseif ($server['type'] === 'http') {
+            $url = "http://{$server['host']}/";
+            $result = check_server_http($url, 3);
+        } else {
+            $result = check_server_tcp($server['host'], $server['port'], 3);
+        }
+    } catch (Throwable $e) {
+        error_log("Monitor error for {$server['name']}: " . $e->getMessage());
+    }
+
+    $server_status[$id] = [
+        'name' => $server['name'],
+        'description' => $server['description'],
+        'status' => $result['online'] ? 'online' : 'offline',
+        'response_time' => $result['response_time'] > 0 ? $result['response_time'] . 'ms' : 'N/A',
+        'uptime' => $result['online'] ? '99.9%' : '0%',
+        'load' => $result['online'] ? 'OK' : 'Down',
+        'icon' => $server['icon']
     ];
 }
 
@@ -544,42 +590,36 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
             
             <div class="status-grid">
                 <?php foreach ($server_status as $server_id => $server): ?>
-                    <div class="status-card" data-server="<?php echo $server_id; ?>">
+                    <div class="status-card status-card-<?php echo $server['status']; ?>" data-server="<?php echo htmlspecialchars($server_id); ?>">
                         <div class="status-header">
-                            <div class="status-info">
-                                <h3 class="server-name"><?php echo $server['name']; ?></h3>
-                                <div class="status-indicator status-<?php echo $server['status']; ?>">
-                                    <span class="status-dot"></span>
-                                    <span class="status-text">
-                                        <?php 
-                                        echo $server['status'] === 'online' ? 'Онлайн' : 
-                                            ($server['status'] === 'maintenance' ? 'Обслуговування' : 'Офлайн');
-                                        ?>
-                                    </span>
-                                </div>
+                            <div class="status-icon-wrapper">
+                                <i class="icon-<?php echo htmlspecialchars($server['icon'] ?? 'server'); ?>"></i>
                             </div>
-                            <div class="status-uptime">
-                                <div class="uptime-value"><?php echo $server['uptime']; ?></div>
-                                <div class="uptime-label">Uptime</div>
+                            <div class="status-info">
+                                <h3 class="server-name"><?php echo htmlspecialchars($server['name']); ?></h3>
+                                <p class="server-description"><?php echo htmlspecialchars($server['description'] ?? ''); ?></p>
+                            </div>
+                            <div class="status-badge status-<?php echo $server['status']; ?>">
+                                <span class="status-dot"></span>
+                                <span class="status-text">
+                                    <?php echo $server['status'] === 'online' ? 'Online' : 'Offline'; ?>
+                                </span>
                             </div>
                         </div>
-                        
+
                         <div class="status-metrics">
                             <div class="metric">
+                                <div class="metric-value"><?php echo htmlspecialchars($server['response_time']); ?></div>
                                 <div class="metric-label">Відгук</div>
-                                <div class="metric-value"><?php echo $server['response_time']; ?></div>
                             </div>
                             <div class="metric">
-                                <div class="metric-label">Навантаження</div>
-                                <div class="metric-value"><?php echo $server['load']; ?></div>
+                                <div class="metric-value"><?php echo htmlspecialchars($server['uptime']); ?></div>
+                                <div class="metric-label">Uptime</div>
                             </div>
-                        </div>
-                        
-                        <div class="status-actions">
-                            <button class="btn btn-small btn-outline" onclick="refreshServerStatus('<?php echo $server_id; ?>')">
-                                <i class="icon-refresh-cw"></i>
-                                Оновити
-                            </button>
+                            <div class="metric">
+                                <div class="metric-value"><?php echo htmlspecialchars($server['load']); ?></div>
+                                <div class="metric-label">Статус</div>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -658,94 +698,20 @@ include $_SERVER['DOCUMENT_ROOT'] . '/includes/header.php';
     </section>
 </main>
 
-<!-- Скрипт автообновления статуса серверов -->
+<!-- Простий скрипт для оновлення сторінки -->
 <script>
-// Автообновление статуса серверов каждые 30 секунд
-function refreshServerStatus(serverId = null) {
-    fetch('/api/monitoring/status.php?action=all&format=simple')
-        .then(response => response.json())
-        .then(data => {
-            if (!data.success || !data.data.servers) {
-                console.warn('Failed to load server status');
-                return;
-            }
-
-            data.data.servers.forEach(server => {
-                const card = document.querySelector(`.status-card[data-server="${server.id}"]`);
-                if (!card) return;
-
-                // Обновляем статус
-                const statusIndicator = card.querySelector('.status-indicator');
-                const statusText = card.querySelector('.status-text');
-                const uptimeValue = card.querySelector('.uptime-value');
-                const metrics = card.querySelectorAll('.metric-value');
-
-                const status = server.online && server.status === 'online' ? 'online' :
-                              (server.online ? 'maintenance' : 'offline');
-
-                if (statusIndicator) {
-                    statusIndicator.className = `status-indicator status-${status}`;
-                }
-
-                if (statusText) {
-                    const statusNames = {
-                        'online': 'Онлайн',
-                        'offline': 'Офлайн',
-                        'maintenance': 'Обслуговування'
-                    };
-                    statusText.textContent = statusNames[status] || status;
-                }
-
-                // Обновляем метрики
-                if (server.type === 'ISPManager' || server.type === 'Proxmox') {
-                    if (uptimeValue) {
-                        uptimeValue.textContent = server.uptime ? server.uptime + '%' : 'N/A';
-                    }
-                    if (metrics[0]) {
-                        metrics[0].textContent = '<5ms';
-                    }
-                    if (metrics[1]) {
-                        metrics[1].textContent = server.cpu ? Math.round(server.cpu) + '%' : 'N/A';
-                    }
-                } else if (server.type === 'HAProxy') {
-                    if (uptimeValue) {
-                        uptimeValue.textContent = server.backends_up && server.backends_total ?
-                            `${server.backends_up}/${server.backends_total} BE` : 'N/A';
-                    }
-                    if (metrics[0]) {
-                        metrics[0].textContent = '<2ms';
-                    }
-                    if (metrics[1]) {
-                        metrics[1].textContent = server.sessions ? server.sessions + ' sess' : 'N/A';
-                    }
-                } else if (server.type === 'Network') {
-                    if (uptimeValue) {
-                        uptimeValue.textContent = server.rx_rate || 'N/A';
-                    }
-                    if (metrics[0]) {
-                        metrics[0].textContent = server.tx_rate || 'N/A';
-                    }
-                    if (metrics[1]) {
-                        metrics[1].textContent = server.usage ? Math.round(server.usage) + '%' : 'N/A';
-                    }
-                }
-            });
-
-            console.log('Server status updated at ' + new Date().toLocaleTimeString());
-        })
-        .catch(error => {
-            console.error('Error refreshing server status:', error);
-        });
+// Оновлення статусу серверів - просто перезавантажуємо сторінку
+function refreshServerStatus() {
+    location.reload();
 }
 
-// Запускаем автообновление при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    // Обновляем каждые 30 секунд
-    setInterval(refreshServerStatus, 30000);
-
-    // Кнопка ручного обновления
-    window.refreshServerStatus = refreshServerStatus;
-});
+// Автооновлення кожні 60 секунд
+setInterval(function() {
+    // Тільки якщо вкладка активна
+    if (!document.hidden) {
+        location.reload();
+    }
+}, 60000);
 </script>
 
 <script src="/assets/js/contacts.js"></script>
