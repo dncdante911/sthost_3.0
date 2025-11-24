@@ -730,49 +730,6 @@ $popular_questions = [
     </div>
 </div>
 
-<!-- Live Chat Widget -->
-<div class="live-chat-widget" id="liveChatWidget">
-    <div class="chat-header" onclick="toggleChat()">
-        <div class="chat-title">
-            <i class="bi bi-headset"></i>
-            <span>Підтримка 24/7</span>
-        </div>
-        <div class="chat-status online">
-            <span class="status-dot"></span>
-            Online
-        </div>
-        <button class="chat-toggle">
-            <i class="bi bi-chevron-up"></i>
-        </button>
-    </div>
-    
-    <div class="chat-body" id="chatBody">
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                <div class="message-avatar">
-                    <i class="bi bi-robot"></i>
-                </div>
-                <div class="message-content">
-                    <p>Привіт! Я віртуальний асистент StormHosting. Чим можу допомогти?</p>
-                    <div class="quick-replies">
-                        <button class="quick-reply" onclick="selectQuickReply('Проблема з хостингом')">Проблема з хостингом</button>
-                        <button class="quick-reply" onclick="selectQuickReply('Питання по VPS')">Питання по VPS</button>
-                        <button class="quick-reply" onclick="selectQuickReply('Налаштування домену')">Налаштування домену</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="chat-input">
-            <input type="text" id="chatInputField" placeholder="Введіть ваше повідомлення..." 
-                   onkeypress="handleChatKeyPress(event)">
-            <button class="chat-send" onclick="sendChatMessage()">
-                <i class="bi bi-send"></i>
-            </button>
-        </div>
-    </div>
-</div>
-
 <!-- Floating Action Button -->
 <div class="floating-actions">
     <div class="fab-menu" id="fabMenu">
