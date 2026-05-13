@@ -32,7 +32,9 @@ function loadEnv($path) {
             // Set environment variable
             if (!array_key_exists($name, $_ENV)) {
                 $_ENV[$name] = $value;
-                putenv("{$name}={$value}");
+                if (function_exists('putenv')) {
+                    putenv("{$name}={$value}");
+                }
             }
         }
     }
